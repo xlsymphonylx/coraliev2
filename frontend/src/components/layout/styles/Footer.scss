@@ -1,0 +1,25 @@
+@use "@/base.scss" as *;
+
+.footer {
+  @include flex-layout($dir: column, $jContent: center, $aItems: center);
+  background-color: var(--coralie-spicy);
+  color: var(--coralie-white);
+  font-weight: bold;
+  padding: 1rem;
+
+  &__title {
+    font-weight: bolder;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+  }
+  &__text {
+    width: 100%;
+    max-width: 90ch;
+    text-align: center;
+  }
+  &__socials {
+    margin-top: 0.75rem;
+    @include flex-layout();
+  }
+}
+

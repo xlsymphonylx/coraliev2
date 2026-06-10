@@ -1,0 +1,67 @@
+@use "@/base.scss" as *;
+
+.user-dropdown {
+  position: relative;
+
+  &__trigger {
+    @include flex-layout($gap: 0);
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg-raised);
+    color: var(--text);
+    cursor: pointer;
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+  }
+
+  &__dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    min-width: 12rem;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-raised);
+    box-shadow: var(--shadow);
+    z-index: 5;
+  }
+
+  &__user-info {
+    margin-bottom: 0.75rem;
+  }
+
+  &__user-info-username,
+  &__user-info-role {
+    margin: 0;
+  }
+
+  &__user-info-role {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+  }
+
+  &__options {
+    @include flex-layout($dir: column, $aItems: stretch);
+  }
+
+  &__options-item {
+    @include flex-layout($jContent: flex-start);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm);
+    color: inherit;
+  }
+
+  &__options-item--button {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+  }
+}

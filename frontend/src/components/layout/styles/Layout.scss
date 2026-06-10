@@ -1,0 +1,23 @@
+@use "@/base.scss" as *;
+
+.main-layout {
+  @include flex-layout(
+    $dir: column,
+    $jContent: space-between,
+    $aItems: stretch,
+    $gap: 0
+  );
+  height: 100dvh;
+
+  &__content {
+    @include flex-layout(
+      $dir: column,
+      $jContent: space-between,
+      $aItems: stretch
+    );
+    background: var(--coralie-petal);
+    color: var(--text);
+    height: 100%;
+  }
+}
+

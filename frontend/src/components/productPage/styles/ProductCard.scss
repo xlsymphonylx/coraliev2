@@ -1,0 +1,30 @@
+@use "@/base.scss" as *;
+.product-card {
+  @include flex-layout($dir: column);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+
+  &:hover {
+    background-color: var(--coralie-spicy);
+    color: var(--coralie-white);
+  }
+
+  &__image {
+    &-file {
+      height: auto;
+      width: 15rem;
+      border-radius: var(--radius);
+    }
+  }
+  &__body {
+    width: 100%;
+  }
+  &__title {
+    font-weight: bold;
+    font-size: 1rem;
+    letter-spacing: 1px;
+  }
+  &__price {
+    font-family: "Quicksand Variable", sans-serif;
+  }
+}

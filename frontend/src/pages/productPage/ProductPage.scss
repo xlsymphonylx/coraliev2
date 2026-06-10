@@ -1,0 +1,32 @@
+@use "@/base.scss" as *;
+
+.product-page {
+  @include flex-layout(
+    $dir: column,
+    $jContent: start,
+    $aItems: stretch,
+    $gap: 1.5rem
+  );
+  width: 100%;
+  padding: 2rem;
+  box-sizing: border-box;
+
+  &__hero {
+    @include flex-layout(
+      $dir: column,
+      $jContent: start,
+      $aItems: start,
+      $gap: 0.5rem
+    );
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    text-align: left;
+    text-transform: capitalize;
+  }
+  &__title {
+    margin: 0ch;
+  }
+  &__content {
+    display: flex;
+  }
+}

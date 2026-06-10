@@ -1,0 +1,31 @@
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Frontend (Vite/Node)
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.cache/
+frontend/coverage/
+frontend/*.log
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Backend (Rust)
+backend/target/
+backend/**/*.rs.bk
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# General local files
+*.swp
+*.swo
