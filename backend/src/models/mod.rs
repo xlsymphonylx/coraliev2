@@ -1,3 +1,11 @@
+pub mod bundle_item;
+pub mod category;
+pub mod product;
+pub mod product_discount;
+pub mod product_image;
+pub mod product_tag;
 pub mod role;
+pub mod tag;
 pub mod user;
 pub mod user_role;
+pub mod volume_discount;
