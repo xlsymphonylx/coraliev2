@@ -1,24 +1,29 @@
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
-#[sea_orm(table_name = "roles")]
+#[sea_orm(table_name = "order_items")]
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
-    pub name: String,
-    pub created_at: DateTimeUtc,
+    pub order_id: i32,
+    pub product_id: i32,
+    pub quantity: i32,
     pub deleted_at: Option<DateTimeUtc>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
-    #[sea_orm(has_many = "super::user_role::Entity")]
-    UserRole,
+    #[sea_orm(
+        belongs_to = "super::order::Entity",
+        from = "Column::OrderId",
+        to = "super::order::Column::Id"
+    )]
+    Order,
 }
 
-impl Related<super::user_role::Entity> for Entity {
+impl Related<super::order::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::UserRole.def()
+        Relation::Order.def()
     }
 }
 

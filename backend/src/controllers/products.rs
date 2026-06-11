@@ -3,6 +3,7 @@ use axum::{
     extract::{Path, Query, State},
     http::StatusCode,
 };
+use chrono::Utc;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, EntityTrait, ModelTrait, QueryFilter, QueryOrder,
     Set,
@@ -37,7 +38,7 @@ pub async fn list(
     State(state): State<AppState>,
     Query(q): Query<ProductQuery>,
 ) -> Result<Json<ApiResponse<Vec<ProductResponse>>>, (StatusCode, Json<ApiResponse<()>>)> {
-    let mut query = product::Entity::find();
+    let mut query = product::Entity::find().filter(product::Column::DeletedAt.is_null());
 
     if let Some(cat_id) = q.category_id {
         query = query.filter(product::Column::CategoryId.eq(cat_id));
@@ -126,6 +127,7 @@ pub async fn create(
             product_tag::ActiveModel {
                 product_id: Set(prod.id),
                 tag_id: Set(tid),
+                ..Default::default()
             }
             .insert(&state.db)
             .await
@@ -214,6 +216,7 @@ pub async fn update(
             product_tag::ActiveModel {
                 product_id: Set(updated.id),
                 tag_id: Set(tid),
+                ..Default::default()
             }
             .insert(&state.db)
             .await
@@ -270,14 +273,17 @@ pub async fn delete(
     State(state): State<AppState>,
     Path(id): Path<i32>,
 ) -> Result<Json<ApiResponse<()>>, (StatusCode, Json<ApiResponse<()>>)> {
-    let result = product::Entity::delete_by_id(id)
-        .exec(&state.db)
+    let prod = product::Entity::find_by_id(id)
+        .filter(product::Column::DeletedAt.is_null())
+        .one(&state.db)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?
+        .ok_or_else(|| (StatusCode::NOT_FOUND, Json(ApiResponse::error(404, "product not found".into()))))?;
 
-    if result.rows_affected == 0 {
-        return Err((StatusCode::NOT_FOUND, Json(ApiResponse::error(404, "product not found".into()))));
-    }
+    let mut active: product::ActiveModel = prod.into();
+    active.deleted_at = Set(Some(Utc::now()));
+    active.update(&state.db).await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
 
     Ok(Json(ApiResponse::ok(())))
 }

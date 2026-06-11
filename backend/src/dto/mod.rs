@@ -1,6 +1,9 @@
+pub mod address;
 pub mod auth;
 pub mod category;
 pub mod common;
+pub mod inventory;
+pub mod order;
 pub mod product;
 pub mod role;
 pub mod tag;

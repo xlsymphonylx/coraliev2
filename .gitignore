@@ -29,3 +29,7 @@ backend/.env.*
 # General local files
 *.swp
 *.swo
+
+# Planning / tooling
+.planning/
+.deepcode/

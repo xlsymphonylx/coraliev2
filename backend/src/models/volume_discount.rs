@@ -10,6 +10,7 @@ pub struct Model {
     #[sea_orm(column_type = "Decimal(Some((5, 2)))")]
     pub discount_percent: Decimal,
     pub description: Option<String>,
+    pub deleted_at: Option<DateTimeUtc>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

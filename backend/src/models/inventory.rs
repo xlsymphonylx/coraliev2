@@ -1,25 +1,21 @@
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
-#[sea_orm(table_name = "roles")]
+#[sea_orm(table_name = "inventory")]
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
-    pub name: String,
-    pub created_at: DateTimeUtc,
+    pub product_id: i32,
+    pub storage_unit_id: i32,
+    pub batch_code: Option<String>,
+    pub quantity: i32,
+    pub low_stock_threshold: i32,
+    pub entry_date: DateTimeUtc,
+    pub expire_date: Option<DateTimeUtc>,
     pub deleted_at: Option<DateTimeUtc>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {
-    #[sea_orm(has_many = "super::user_role::Entity")]
-    UserRole,
-}
-
-impl Related<super::user_role::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::UserRole.def()
-    }
-}
+pub enum Relation {}
 
 impl ActiveModelBehavior for ActiveModel {}

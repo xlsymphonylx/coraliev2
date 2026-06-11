@@ -3,7 +3,8 @@ use axum::{
     extract::{Path, State},
     http::StatusCode,
 };
-use sea_orm::{ActiveModelTrait, EntityTrait, Set};
+use chrono::Utc;
+use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter, Set};
 
 use crate::{
     dto::{
@@ -28,6 +29,7 @@ pub async fn list(
     State(state): State<AppState>,
 ) -> Result<Json<ApiResponse<Vec<TagResponse>>>, (StatusCode, Json<ApiResponse<()>>)> {
     let tags = tag::Entity::find()
+        .filter(tag::Column::DeletedAt.is_null())
         .all(&state.db)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
@@ -72,14 +74,17 @@ pub async fn delete(
     State(state): State<AppState>,
     Path(id): Path<i32>,
 ) -> Result<Json<ApiResponse<()>>, (StatusCode, Json<ApiResponse<()>>)> {
-    let result = tag::Entity::delete_by_id(id)
-        .exec(&state.db)
+    let t = tag::Entity::find_by_id(id)
+        .filter(tag::Column::DeletedAt.is_null())
+        .one(&state.db)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?
+        .ok_or_else(|| (StatusCode::NOT_FOUND, Json(ApiResponse::error(404, "tag not found".into()))))?;
 
-    if result.rows_affected == 0 {
-        return Err((StatusCode::NOT_FOUND, Json(ApiResponse::error(404, "tag not found".into()))));
-    }
+    let mut active: tag::ActiveModel = t.into();
+    active.deleted_at = Set(Some(Utc::now()));
+    active.update(&state.db).await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
 
     Ok(Json(ApiResponse::ok(())))
 }

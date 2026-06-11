@@ -1,6 +1,9 @@
+pub mod addresses;
 pub mod auth;
 pub mod categories;
 pub mod health;
+pub mod inventory;
+pub mod orders;
 pub mod products;
 pub mod roles;
 pub mod tags;
@@ -19,4 +22,7 @@ pub fn router() -> Router<AppState> {
         .nest("/products", products::router())
         .nest("/categories", categories::router())
         .nest("/tags", tags::router())
+        .nest("/orders", orders::router())
+        .nest("/addresses", addresses::router())
+        .nest("/inventory", inventory::router())
 }

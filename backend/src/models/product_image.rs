@@ -9,6 +9,7 @@ pub struct Model {
     pub url: String,
     pub alt: Option<String>,
     pub sort_order: i32,
+    pub deleted_at: Option<DateTimeUtc>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

@@ -1,6 +1,9 @@
+pub mod addresses;
 pub mod auth;
 pub mod categories;
 pub mod health;
+pub mod inventory;
+pub mod orders;
 pub mod products;
 pub mod roles;
 pub mod tags;

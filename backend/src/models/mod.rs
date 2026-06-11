@@ -1,11 +1,17 @@
+pub mod address;
 pub mod bundle_item;
 pub mod category;
+pub mod inventory;
+pub mod order;
+pub mod order_item;
 pub mod product;
 pub mod product_discount;
 pub mod product_image;
 pub mod product_tag;
 pub mod role;
+pub mod storage_unit;
 pub mod tag;
 pub mod user;
 pub mod user_role;
 pub mod volume_discount;
+pub mod warehouse;

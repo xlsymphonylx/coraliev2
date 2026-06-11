@@ -11,13 +11,6 @@ mod m20220101_000008_create_product_tags_table;
 mod m20220101_000009_create_product_discounts_table;
 mod m20220101_000010_create_volume_discounts_table;
 mod m20220101_000011_create_bundle_items_table;
-mod m20220101_000012_add_deleted_at;
-mod m20220101_000013_create_addresses_table;
-mod m20220101_000014_create_warehouses_table;
-mod m20220101_000015_create_storage_units_table;
-mod m20220101_000016_create_inventory_table;
-mod m20220101_000017_create_orders_table;
-mod m20220101_000018_create_order_items_table;
 
 pub struct Migrator;
 
@@ -36,13 +29,6 @@ impl MigratorTrait for Migrator {
             Box::new(m20220101_000009_create_product_discounts_table::Migration),
             Box::new(m20220101_000010_create_volume_discounts_table::Migration),
             Box::new(m20220101_000011_create_bundle_items_table::Migration),
-            Box::new(m20220101_000012_add_deleted_at::Migration),
-            Box::new(m20220101_000013_create_addresses_table::Migration),
-            Box::new(m20220101_000014_create_warehouses_table::Migration),
-            Box::new(m20220101_000015_create_storage_units_table::Migration),
-            Box::new(m20220101_000016_create_inventory_table::Migration),
-            Box::new(m20220101_000017_create_orders_table::Migration),
-            Box::new(m20220101_000018_create_order_items_table::Migration),
         ]
     }
 }

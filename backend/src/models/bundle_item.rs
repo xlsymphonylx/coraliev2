@@ -9,6 +9,7 @@ pub struct Model {
     pub product_id: i32,
     pub quantity: i32,
     pub sort_order: i32,
+    pub deleted_at: Option<DateTimeUtc>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
