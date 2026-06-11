@@ -11,7 +11,10 @@ async fn main() {
     let config = Config::env();
     let db = db::connect().await.expect("Failed to connect to database");
 
-    let state = AppState { db };
+    let state = AppState {
+        db,
+        jwt_secret: config.jwt_secret,
+    };
 
     let app = Router::new().merge(routes::router()).with_state(state);
 
