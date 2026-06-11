@@ -13,10 +13,12 @@ use crate::{
     },
     models::{inventory, order, order_item, product, order_item::Entity as OrderItem},
     state::AppState,
+    utils::auth::AuthUser,
 };
 
 pub async fn create(
     State(state): State<AppState>,
+    me: AuthUser,
     Json(body): Json<CreateOrderRequest>,
 ) -> Result<Json<ApiResponse<OrderResponse>>, (StatusCode, Json<ApiResponse<()>>)> {
     let mut total = Decimal::ZERO;
@@ -74,7 +76,7 @@ pub async fn create(
     }
 
     let ord = order::ActiveModel {
-        user_id: Set(None), // will wire with AuthUser later
+        user_id: Set(Some(me.user_id)),
         anon_name: Set(body.anon_name),
         status: Set("pending".into()),
         total: Set(total),

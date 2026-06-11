@@ -4,10 +4,14 @@ pub mod categories;
 pub mod health;
 pub mod inventory;
 pub mod orders;
+pub mod product_discounts;
 pub mod products;
 pub mod roles;
+pub mod storage_units;
 pub mod tags;
 pub mod users;
+pub mod volume_discounts;
+pub mod warehouses;
 
 use axum::Router;
 
@@ -25,4 +29,8 @@ pub fn router() -> Router<AppState> {
         .nest("/orders", orders::router())
         .nest("/addresses", addresses::router())
         .nest("/inventory", inventory::router())
+        .nest("/warehouses", warehouses::router())
+        .nest("/storage-units", storage_units::router())
+        .nest("/product-discounts", product_discounts::router())
+        .nest("/volume-discounts", volume_discounts::router())
 }

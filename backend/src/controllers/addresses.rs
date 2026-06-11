@@ -8,6 +8,7 @@ use crate::{
     },
     models::address,
     state::AppState,
+    utils::auth::AuthUser,
 };
 
 pub async fn list(
@@ -34,10 +35,11 @@ pub async fn list(
 
 pub async fn create(
     State(state): State<AppState>,
+    me: AuthUser,
     Json(body): Json<CreateAddressRequest>,
 ) -> Result<Json<ApiResponse<AddressResponse>>, (StatusCode, Json<ApiResponse<()>>)> {
     let a = address::ActiveModel {
-        user_id: Set(None),
+        user_id: Set(Some(me.user_id)),
         label: Set(body.label),
         line1: Set(body.line1),
         line2: Set(body.line2),
