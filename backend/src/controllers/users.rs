@@ -3,7 +3,7 @@ use axum::{
     extract::{Path, State},
     http::StatusCode,
 };
-use sea_orm::{ActiveModelTrait, EntityTrait, ModelTrait, Set};
+use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, ModelTrait, QueryFilter, Set};
 
 use crate::{
     dto::{
@@ -111,13 +111,48 @@ pub async fn update(
         )
     })?;
 
+    let current_username = user.username.clone();
+    let current_email = user.email.clone();
+
     let mut active: user::ActiveModel = user.into();
 
-    if let Some(username) = body.username {
-        active.username = Set(username);
+    if let Some(ref username) = body.username {
+        if *username != current_username {
+            let conflict = User::find()
+                .filter(user::Column::Username.eq(username))
+                .filter(user::Column::Id.ne(id))
+                .one(&state.db)
+                .await
+                .map_err(|e| {
+                    (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string())))
+                })?;
+            if conflict.is_some() {
+                return Err((
+                    StatusCode::CONFLICT,
+                    Json(ApiResponse::error(409, "username already taken".into())),
+                ));
+            }
+        }
+        active.username = Set(username.clone());
     }
-    if let Some(email) = body.email {
-        active.email = Set(email);
+    if let Some(ref email) = body.email {
+        if *email != current_email {
+            let conflict = User::find()
+                .filter(user::Column::Email.eq(email))
+                .filter(user::Column::Id.ne(id))
+                .one(&state.db)
+                .await
+                .map_err(|e| {
+                    (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string())))
+                })?;
+            if conflict.is_some() {
+                return Err((
+                    StatusCode::CONFLICT,
+                    Json(ApiResponse::error(409, "email already taken".into())),
+                ));
+            }
+        }
+        active.email = Set(email.clone());
     }
     if let Some(password) = body.password {
         let hash = bcrypt::hash(&password, 10).map_err(|e| {

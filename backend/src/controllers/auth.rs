@@ -5,7 +5,10 @@ use sea_orm::{
 
 use crate::{
     dto::{
-        auth::{AdminSignupRequest, AuthResponse, LoginRequest, SignupRequest, UserInfo},
+        auth::{
+            AdminSignupRequest, AuthResponse, ChangePasswordRequest, LoginRequest, RoleInfo,
+            SignupRequest, UpdateProfileRequest, UserInfo,
+        },
         common::ApiResponse,
     },
     models::{
@@ -15,7 +18,7 @@ use crate::{
         user_role,
     },
     state::AppState,
-    utils::jwt,
+    utils::{auth::AuthUser, jwt},
 };
 
 pub async fn signup(
@@ -313,4 +316,115 @@ pub async fn login(
             roles: role_infos,
         },
     })))
+}
+
+pub async fn update_me(
+    State(state): State<AppState>,
+    me: AuthUser,
+    Json(body): Json<UpdateProfileRequest>,
+) -> Result<Json<ApiResponse<UserInfo>>, (StatusCode, Json<ApiResponse<()>>)> {
+    let user = User::find_by_id(me.user_id)
+        .one(&state.db)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?
+        .ok_or_else(|| (StatusCode::NOT_FOUND, Json(ApiResponse::error(404, "user not found".into()))))?;
+
+    let mut active: user::ActiveModel = user.into();
+
+    if let Some(username) = &body.username {
+        check_conflict(
+            &state.db,
+            Some(&user::Column::Username),
+            username,
+            me.user_id,
+            "username already taken",
+        )
+        .await?;
+        active.username = Set(username.clone());
+    }
+
+    if let Some(email) = &body.email {
+        check_conflict(
+            &state.db,
+            Some(&user::Column::Email),
+            email,
+            me.user_id,
+            "email already taken",
+        )
+        .await?;
+        active.email = Set(email.clone());
+    }
+
+    let updated = active
+        .update(&state.db)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+
+    let roles: Vec<role::Model> = updated
+        .find_related(role::Entity)
+        .all(&state.db)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+    let role_infos: Vec<RoleInfo> = roles.into_iter().map(|r| r.into()).collect();
+
+    Ok(Json(ApiResponse::ok(UserInfo {
+        id: updated.id,
+        username: updated.username,
+        email: updated.email,
+        roles: role_infos,
+    })))
+}
+
+pub async fn change_password(
+    State(state): State<AppState>,
+    me: AuthUser,
+    Json(body): Json<ChangePasswordRequest>,
+) -> Result<Json<ApiResponse<()>>, (StatusCode, Json<ApiResponse<()>>)> {
+    let user = User::find_by_id(me.user_id)
+        .one(&state.db)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?
+        .ok_or_else(|| (StatusCode::NOT_FOUND, Json(ApiResponse::error(404, "user not found".into()))))?;
+
+    let valid = bcrypt::verify(&body.current_password, &user.password_hash).unwrap_or(false);
+    if !valid {
+        return Err((
+            StatusCode::UNAUTHORIZED,
+            Json(ApiResponse::error(401, "current password is incorrect".into())),
+        ));
+    }
+
+    let hash = bcrypt::hash(&body.new_password, 10)
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+
+    let mut active: user::ActiveModel = user.into();
+    active.password_hash = Set(hash);
+    active
+        .update(&state.db)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+
+    Ok(Json(ApiResponse::ok(())))
+}
+
+async fn check_conflict(
+    db: &sea_orm::DatabaseConnection,
+    column: Option<&user::Column>,
+    value: &str,
+    exclude_id: i32,
+    message: &str,
+) -> Result<(), (StatusCode, Json<ApiResponse<()>>)> {
+    if let Some(col) = column {
+        let existing = User::find()
+            .filter(col.eq(value))
+            .filter(user::Column::Id.ne(exclude_id))
+            .one(db)
+            .await
+            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+
+        if existing.is_some() {
+            return Err((StatusCode::CONFLICT, Json(ApiResponse::error(409, message.into()))));
+        }
+    }
+    Ok(())
 }
