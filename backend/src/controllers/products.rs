@@ -5,8 +5,7 @@ use axum::{
 };
 use chrono::Utc;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, EntityTrait, ModelTrait, QueryFilter, QueryOrder,
-    Set,
+    ActiveModelTrait, ColumnTrait, EntityTrait, ModelTrait, QueryFilter, QueryOrder, Set,
 };
 
 use crate::{
@@ -18,16 +17,20 @@ use crate::{
             ProductQuery, ProductResponse, TagSummary, UpdateProductRequest,
         },
     },
-    models::{
-        bundle_item, category, product, product_discount, product_image, product_tag, tag,
-    },
+    models::{bundle_item, category, product, product_discount, product_image, product_tag, tag},
     state::AppState,
 };
 
 fn slugify(s: &str) -> String {
     s.to_lowercase()
         .chars()
-        .map(|c| if c.is_alphanumeric() || c == '-' { c } else { ' ' })
+        .map(|c| {
+            if c.is_alphanumeric() || c == '-' {
+                c
+            } else {
+                ' '
+            }
+        })
         .collect::<String>()
         .split_whitespace()
         .collect::<Vec<_>>()
@@ -60,14 +63,20 @@ pub async fn list(
             .all(&state.db)
             .await
             .map_err(|e| {
-                (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string())))
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse::error(500, e.to_string())),
+                )
             })?;
         let ids: Vec<i32> = pts.into_iter().map(|pt| pt.product_id).collect();
         query = query.filter(product::Column::Id.is_in(ids));
     }
 
     let products = query.all(&state.db).await.map_err(|e| {
-        (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string())))
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::error(500, e.to_string())),
+        )
     })?;
 
     let mut responses = Vec::new();
@@ -86,10 +95,22 @@ pub async fn get(
         .filter(product::Column::Slug.eq(&slug))
         .one(&state.db)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?
-        .ok_or_else(|| (StatusCode::NOT_FOUND, Json(ApiResponse::error(404, "product not found".into()))))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(500, e.to_string())),
+            )
+        })?
+        .ok_or_else(|| {
+            (
+                StatusCode::NOT_FOUND,
+                Json(ApiResponse::error(404, "product not found".into())),
+            )
+        })?;
 
-    Ok(Json(ApiResponse::ok(build_response(&state.db, product).await?)))
+    Ok(Json(ApiResponse::ok(
+        build_response(&state.db, product).await?,
+    )))
 }
 
 pub async fn create(
@@ -102,10 +123,18 @@ pub async fn create(
         .filter(product::Column::Slug.eq(&slug))
         .one(&state.db)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(500, e.to_string())),
+            )
+        })?;
 
     if existing.is_some() {
-        return Err((StatusCode::CONFLICT, Json(ApiResponse::error(409, "slug already taken".into()))));
+        return Err((
+            StatusCode::CONFLICT,
+            Json(ApiResponse::error(409, "slug already taken".into())),
+        ));
     }
 
     let prod = product::ActiveModel {
@@ -119,7 +148,12 @@ pub async fn create(
     }
     .insert(&state.db)
     .await
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+    .map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::error(500, e.to_string())),
+        )
+    })?;
 
     // Insert tags
     if let Some(tag_ids) = body.tag_ids {
@@ -131,7 +165,12 @@ pub async fn create(
             }
             .insert(&state.db)
             .await
-            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+            .map_err(|e| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse::error(500, e.to_string())),
+                )
+            })?;
         }
     }
 
@@ -147,7 +186,12 @@ pub async fn create(
             }
             .insert(&state.db)
             .await
-            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+            .map_err(|e| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse::error(500, e.to_string())),
+                )
+            })?;
         }
     }
 
@@ -163,11 +207,18 @@ pub async fn create(
             }
             .insert(&state.db)
             .await
-            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+            .map_err(|e| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse::error(500, e.to_string())),
+                )
+            })?;
         }
     }
 
-    Ok(Json(ApiResponse::ok(build_response(&state.db, prod).await?)))
+    Ok(Json(ApiResponse::ok(
+        build_response(&state.db, prod).await?,
+    )))
 }
 
 pub async fn update(
@@ -178,8 +229,18 @@ pub async fn update(
     let prod = product::Entity::find_by_id(id)
         .one(&state.db)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?
-        .ok_or_else(|| (StatusCode::NOT_FOUND, Json(ApiResponse::error(404, "product not found".into()))))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(500, e.to_string())),
+            )
+        })?
+        .ok_or_else(|| {
+            (
+                StatusCode::NOT_FOUND,
+                Json(ApiResponse::error(404, "product not found".into())),
+            )
+        })?;
 
     let mut active: product::ActiveModel = prod.into();
 
@@ -202,8 +263,12 @@ pub async fn update(
         active.category_id = Set(Some(cat_id));
     }
 
-    let updated = active.update(&state.db).await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+    let updated = active.update(&state.db).await.map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::error(500, e.to_string())),
+        )
+    })?;
 
     // Replace tags
     if let Some(tag_ids) = body.tag_ids {
@@ -211,7 +276,12 @@ pub async fn update(
             .filter(product_tag::Column::ProductId.eq(updated.id))
             .exec(&state.db)
             .await
-            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+            .map_err(|e| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse::error(500, e.to_string())),
+                )
+            })?;
         for tid in tag_ids {
             product_tag::ActiveModel {
                 product_id: Set(updated.id),
@@ -220,7 +290,12 @@ pub async fn update(
             }
             .insert(&state.db)
             .await
-            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+            .map_err(|e| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse::error(500, e.to_string())),
+                )
+            })?;
         }
     }
 
@@ -230,7 +305,12 @@ pub async fn update(
             .filter(product_image::Column::ProductId.eq(updated.id))
             .exec(&state.db)
             .await
-            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+            .map_err(|e| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse::error(500, e.to_string())),
+                )
+            })?;
         for (i, img) in images.into_iter().enumerate() {
             product_image::ActiveModel {
                 product_id: Set(updated.id),
@@ -241,7 +321,12 @@ pub async fn update(
             }
             .insert(&state.db)
             .await
-            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+            .map_err(|e| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse::error(500, e.to_string())),
+                )
+            })?;
         }
     }
 
@@ -251,7 +336,12 @@ pub async fn update(
             .filter(bundle_item::Column::BundleId.eq(updated.id))
             .exec(&state.db)
             .await
-            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+            .map_err(|e| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse::error(500, e.to_string())),
+                )
+            })?;
         for (i, bi) in items.into_iter().enumerate() {
             bundle_item::ActiveModel {
                 bundle_id: Set(updated.id),
@@ -262,11 +352,18 @@ pub async fn update(
             }
             .insert(&state.db)
             .await
-            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+            .map_err(|e| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse::error(500, e.to_string())),
+                )
+            })?;
         }
     }
 
-    Ok(Json(ApiResponse::ok(build_response(&state.db, updated).await?)))
+    Ok(Json(ApiResponse::ok(
+        build_response(&state.db, updated).await?,
+    )))
 }
 
 pub async fn delete(
@@ -277,13 +374,27 @@ pub async fn delete(
         .filter(product::Column::DeletedAt.is_null())
         .one(&state.db)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?
-        .ok_or_else(|| (StatusCode::NOT_FOUND, Json(ApiResponse::error(404, "product not found".into()))))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(500, e.to_string())),
+            )
+        })?
+        .ok_or_else(|| {
+            (
+                StatusCode::NOT_FOUND,
+                Json(ApiResponse::error(404, "product not found".into())),
+            )
+        })?;
 
     let mut active: product::ActiveModel = prod.into();
     active.deleted_at = Set(Some(Utc::now()));
-    active.update(&state.db).await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+    active.update(&state.db).await.map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::error(500, e.to_string())),
+        )
+    })?;
 
     Ok(Json(ApiResponse::ok(())))
 }
@@ -299,20 +410,31 @@ async fn build_response(
         .order_by(product_image::Column::SortOrder, sea_orm::Order::Asc)
         .all(db)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(500, e.to_string())),
+            )
+        })?;
 
-    let tags = p
-        .find_related(tag::Entity)
-        .all(db)
-        .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+    let tags = p.find_related(tag::Entity).all(db).await.map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::error(500, e.to_string())),
+        )
+    })?;
 
     let discounts = p
         .find_related(product_discount::Entity)
         .filter(product_discount::Column::Active.eq(true))
         .all(db)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(500, e.to_string())),
+            )
+        })?;
 
     let bundle_items = if p.product_type == "bundle" {
         bundle_item::Entity::find()
@@ -320,7 +442,12 @@ async fn build_response(
             .order_by(bundle_item::Column::SortOrder, sea_orm::Order::Asc)
             .all(db)
             .await
-            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?
+            .map_err(|e| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse::error(500, e.to_string())),
+                )
+            })?
     } else {
         Vec::new()
     };
@@ -329,8 +456,17 @@ async fn build_response(
         category::Entity::find_by_id(cat_id)
             .one(db)
             .await
-            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?
-            .map(|c| CategorySummary { id: c.id, name: c.name, slug: c.slug })
+            .map_err(|e| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse::error(500, e.to_string())),
+                )
+            })?
+            .map(|c| CategorySummary {
+                id: c.id,
+                name: c.name,
+                slug: c.slug,
+            })
     } else {
         None
     };
@@ -343,7 +479,14 @@ async fn build_response(
         price: p.price,
         product_type: p.product_type,
         category,
-        tags: tags.into_iter().map(|t| TagSummary { id: t.id, name: t.name, slug: t.slug }).collect(),
+        tags: tags
+            .into_iter()
+            .map(|t| TagSummary {
+                id: t.id,
+                name: t.name,
+                slug: t.slug,
+            })
+            .collect(),
         images: images
             .into_iter()
             .map(|i| ImageResponse {

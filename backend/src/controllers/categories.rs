@@ -18,7 +18,13 @@ use crate::{
 fn slugify(s: &str) -> String {
     s.to_lowercase()
         .chars()
-        .map(|c| if c.is_alphanumeric() || c == '-' { c } else { ' ' })
+        .map(|c| {
+            if c.is_alphanumeric() || c == '-' {
+                c
+            } else {
+                ' '
+            }
+        })
         .collect::<String>()
         .split_whitespace()
         .collect::<Vec<_>>()
@@ -32,7 +38,12 @@ pub async fn list(
         .filter(category::Column::DeletedAt.is_null())
         .all(&state.db)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(500, e.to_string())),
+            )
+        })?;
 
     let resp: Vec<CategoryResponse> = categories
         .into_iter()
@@ -64,7 +75,12 @@ pub async fn create(
     }
     .insert(&state.db)
     .await
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+    .map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::error(500, e.to_string())),
+        )
+    })?;
 
     Ok(Json(ApiResponse::ok(CategoryResponse {
         id: cat.id,
@@ -84,18 +100,40 @@ pub async fn update(
     let cat = category::Entity::find_by_id(id)
         .one(&state.db)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?
-        .ok_or_else(|| (StatusCode::NOT_FOUND, Json(ApiResponse::error(404, "category not found".into()))))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(500, e.to_string())),
+            )
+        })?
+        .ok_or_else(|| {
+            (
+                StatusCode::NOT_FOUND,
+                Json(ApiResponse::error(404, "category not found".into())),
+            )
+        })?;
 
     let mut active: category::ActiveModel = cat.into();
 
-    if let Some(name) = body.name { active.name = Set(name); }
-    if let Some(slug) = body.slug { active.slug = Set(slug); }
-    if let Some(desc) = body.description { active.description = Set(Some(desc)); }
-    if let Some(pid) = body.parent_id { active.parent_id = Set(Some(pid)); }
+    if let Some(name) = body.name {
+        active.name = Set(name);
+    }
+    if let Some(slug) = body.slug {
+        active.slug = Set(slug);
+    }
+    if let Some(desc) = body.description {
+        active.description = Set(Some(desc));
+    }
+    if let Some(pid) = body.parent_id {
+        active.parent_id = Set(Some(pid));
+    }
 
-    let updated = active.update(&state.db).await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+    let updated = active.update(&state.db).await.map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::error(500, e.to_string())),
+        )
+    })?;
 
     Ok(Json(ApiResponse::ok(CategoryResponse {
         id: updated.id,
@@ -115,13 +153,27 @@ pub async fn delete(
         .filter(category::Column::DeletedAt.is_null())
         .one(&state.db)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?
-        .ok_or_else(|| (StatusCode::NOT_FOUND, Json(ApiResponse::error(404, "category not found".into()))))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(500, e.to_string())),
+            )
+        })?
+        .ok_or_else(|| {
+            (
+                StatusCode::NOT_FOUND,
+                Json(ApiResponse::error(404, "category not found".into())),
+            )
+        })?;
 
     let mut active: category::ActiveModel = cat.into();
     active.deleted_at = Set(Some(Utc::now()));
-    active.update(&state.db).await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+    active.update(&state.db).await.map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::error(500, e.to_string())),
+        )
+    })?;
 
     Ok(Json(ApiResponse::ok(())))
 }

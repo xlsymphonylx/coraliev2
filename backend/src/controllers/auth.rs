@@ -11,12 +11,7 @@ use crate::{
         },
         common::ApiResponse,
     },
-    models::{
-        role, role::Entity as Role,
-        user,
-        user::Entity as User,
-        user_role,
-    },
+    models::{role, role::Entity as Role, user, user::Entity as User, user_role},
     state::AppState,
     utils::{auth::AuthUser, jwt},
 };
@@ -51,7 +46,10 @@ pub async fn signup(
     if existing.is_some() {
         return Err((
             StatusCode::CONFLICT,
-            Json(ApiResponse::error(409, "username or email already taken".into())),
+            Json(ApiResponse::error(
+                409,
+                "username or email already taken".into(),
+            )),
         ));
     }
 
@@ -122,13 +120,12 @@ pub async fn signup(
 
     let roles = vec![customer_role.into()];
     let claims = jwt::make_claims(user.id, &user.username, vec!["customer".into()], 86400);
-    let token =
-        jwt::encode_token(&claims, &state.jwt_secret).map_err(|e| {
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(ApiResponse::error(500, e.to_string())),
-            )
-        })?;
+    let token = jwt::encode_token(&claims, &state.jwt_secret).map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::error(500, e.to_string())),
+        )
+    })?;
 
     Ok(Json(ApiResponse::ok(AuthResponse {
         token,
@@ -171,17 +168,23 @@ pub async fn admin_signup(
     if existing.is_some() {
         return Err((
             StatusCode::CONFLICT,
-            Json(ApiResponse::error(409, "username or email already taken".into())),
+            Json(ApiResponse::error(
+                409,
+                "username or email already taken".into(),
+            )),
         ));
     }
 
     // Verify the requested role exists
-    let role = Role::find_by_id(body.role_id).one(&txn).await.map_err(|e| {
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(ApiResponse::error(500, e.to_string())),
-        )
-    })?;
+    let role = Role::find_by_id(body.role_id)
+        .one(&txn)
+        .await
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(500, e.to_string())),
+            )
+        })?;
 
     let role = role.ok_or_else(|| {
         (
@@ -235,13 +238,12 @@ pub async fn admin_signup(
 
     let role_name = role.name.clone();
     let claims = jwt::make_claims(user.id, &user.username, vec![role_name.clone()], 86400);
-    let token =
-        jwt::encode_token(&claims, &state.jwt_secret).map_err(|e| {
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(ApiResponse::error(500, e.to_string())),
-            )
-        })?;
+    let token = jwt::encode_token(&claims, &state.jwt_secret).map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::error(500, e.to_string())),
+        )
+    })?;
 
     Ok(Json(ApiResponse::ok(AuthResponse {
         token,
@@ -271,7 +273,10 @@ pub async fn login(
         .ok_or_else(|| {
             (
                 StatusCode::UNAUTHORIZED,
-                Json(ApiResponse::error(401, "invalid username or password".into())),
+                Json(ApiResponse::error(
+                    401,
+                    "invalid username or password".into(),
+                )),
             )
         })?;
 
@@ -279,7 +284,10 @@ pub async fn login(
     if !valid {
         return Err((
             StatusCode::UNAUTHORIZED,
-            Json(ApiResponse::error(401, "invalid username or password".into())),
+            Json(ApiResponse::error(
+                401,
+                "invalid username or password".into(),
+            )),
         ));
     }
 
@@ -299,13 +307,12 @@ pub async fn login(
     let role_infos: Vec<crate::dto::auth::RoleInfo> = roles.into_iter().map(|r| r.into()).collect();
 
     let claims = jwt::make_claims(user.id, &user.username, role_names, 86400);
-    let token =
-        jwt::encode_token(&claims, &state.jwt_secret).map_err(|e| {
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(ApiResponse::error(500, e.to_string())),
-            )
-        })?;
+    let token = jwt::encode_token(&claims, &state.jwt_secret).map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::error(500, e.to_string())),
+        )
+    })?;
 
     Ok(Json(ApiResponse::ok(AuthResponse {
         token,
@@ -326,8 +333,18 @@ pub async fn update_me(
     let user = User::find_by_id(me.user_id)
         .one(&state.db)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?
-        .ok_or_else(|| (StatusCode::NOT_FOUND, Json(ApiResponse::error(404, "user not found".into()))))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(500, e.to_string())),
+            )
+        })?
+        .ok_or_else(|| {
+            (
+                StatusCode::NOT_FOUND,
+                Json(ApiResponse::error(404, "user not found".into())),
+            )
+        })?;
 
     let mut active: user::ActiveModel = user.into();
 
@@ -355,16 +372,23 @@ pub async fn update_me(
         active.email = Set(email.clone());
     }
 
-    let updated = active
-        .update(&state.db)
-        .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+    let updated = active.update(&state.db).await.map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::error(500, e.to_string())),
+        )
+    })?;
 
     let roles: Vec<role::Model> = updated
         .find_related(role::Entity)
         .all(&state.db)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(500, e.to_string())),
+            )
+        })?;
     let role_infos: Vec<RoleInfo> = roles.into_iter().map(|r| r.into()).collect();
 
     Ok(Json(ApiResponse::ok(UserInfo {
@@ -383,26 +407,45 @@ pub async fn change_password(
     let user = User::find_by_id(me.user_id)
         .one(&state.db)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?
-        .ok_or_else(|| (StatusCode::NOT_FOUND, Json(ApiResponse::error(404, "user not found".into()))))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(500, e.to_string())),
+            )
+        })?
+        .ok_or_else(|| {
+            (
+                StatusCode::NOT_FOUND,
+                Json(ApiResponse::error(404, "user not found".into())),
+            )
+        })?;
 
     let valid = bcrypt::verify(&body.current_password, &user.password_hash).unwrap_or(false);
     if !valid {
         return Err((
             StatusCode::UNAUTHORIZED,
-            Json(ApiResponse::error(401, "current password is incorrect".into())),
+            Json(ApiResponse::error(
+                401,
+                "current password is incorrect".into(),
+            )),
         ));
     }
 
-    let hash = bcrypt::hash(&body.new_password, 10)
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+    let hash = bcrypt::hash(&body.new_password, 10).map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::error(500, e.to_string())),
+        )
+    })?;
 
     let mut active: user::ActiveModel = user.into();
     active.password_hash = Set(hash);
-    active
-        .update(&state.db)
-        .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+    active.update(&state.db).await.map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::error(500, e.to_string())),
+        )
+    })?;
 
     Ok(Json(ApiResponse::ok(())))
 }
@@ -420,10 +463,18 @@ async fn check_conflict(
             .filter(user::Column::Id.ne(exclude_id))
             .one(db)
             .await
-            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+            .map_err(|e| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse::error(500, e.to_string())),
+                )
+            })?;
 
         if existing.is_some() {
-            return Err((StatusCode::CONFLICT, Json(ApiResponse::error(409, message.into()))));
+            return Err((
+                StatusCode::CONFLICT,
+                Json(ApiResponse::error(409, message.into())),
+            ));
         }
     }
     Ok(())

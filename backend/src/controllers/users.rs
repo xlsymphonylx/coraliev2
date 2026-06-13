@@ -124,7 +124,10 @@ pub async fn update(
                 .one(&state.db)
                 .await
                 .map_err(|e| {
-                    (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string())))
+                    (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        Json(ApiResponse::error(500, e.to_string())),
+                    )
                 })?;
             if conflict.is_some() {
                 return Err((
@@ -143,7 +146,10 @@ pub async fn update(
                 .one(&state.db)
                 .await
                 .map_err(|e| {
-                    (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string())))
+                    (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        Json(ApiResponse::error(500, e.to_string())),
+                    )
                 })?;
             if conflict.is_some() {
                 return Err((

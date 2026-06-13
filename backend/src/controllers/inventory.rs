@@ -1,4 +1,8 @@
-use axum::{Json, extract::{Path, State}, http::StatusCode};
+use axum::{
+    Json,
+    extract::{Path, State},
+    http::StatusCode,
+};
 use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter, Set};
 
 use crate::{
@@ -17,18 +21,28 @@ pub async fn list(
         .filter(inventory::Column::DeletedAt.is_null())
         .all(&state.db)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(500, e.to_string())),
+            )
+        })?;
 
-    Ok(Json(ApiResponse::ok(items.into_iter().map(|i| InventoryResponse {
-        id: i.id,
-        product_id: i.product_id,
-        storage_unit_id: i.storage_unit_id,
-        batch_code: i.batch_code,
-        quantity: i.quantity,
-        low_stock_threshold: i.low_stock_threshold,
-        entry_date: i.entry_date.to_rfc3339(),
-        expire_date: i.expire_date.map(|d| d.to_rfc3339()),
-    }).collect())))
+    Ok(Json(ApiResponse::ok(
+        items
+            .into_iter()
+            .map(|i| InventoryResponse {
+                id: i.id,
+                product_id: i.product_id,
+                storage_unit_id: i.storage_unit_id,
+                batch_code: i.batch_code,
+                quantity: i.quantity,
+                low_stock_threshold: i.low_stock_threshold,
+                entry_date: i.entry_date.to_rfc3339(),
+                expire_date: i.expire_date.map(|d| d.to_rfc3339()),
+            })
+            .collect(),
+    )))
 }
 
 pub async fn create(
@@ -41,12 +55,21 @@ pub async fn create(
         batch_code: Set(body.batch_code),
         quantity: Set(body.quantity),
         low_stock_threshold: Set(body.low_stock_threshold.unwrap_or(5)),
-        expire_date: Set(body.expire_date.and_then(|d| chrono::DateTime::parse_from_rfc3339(&d).ok().map(|dt| dt.to_utc()))),
+        expire_date: Set(body.expire_date.and_then(|d| {
+            chrono::DateTime::parse_from_rfc3339(&d)
+                .ok()
+                .map(|dt| dt.to_utc())
+        })),
         ..Default::default()
     }
     .insert(&state.db)
     .await
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+    .map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::error(500, e.to_string())),
+        )
+    })?;
 
     Ok(Json(ApiResponse::ok(InventoryResponse {
         id: i.id,
@@ -69,15 +92,33 @@ pub async fn update(
         .filter(inventory::Column::DeletedAt.is_null())
         .one(&state.db)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?
-        .ok_or_else(|| (StatusCode::NOT_FOUND, Json(ApiResponse::error(404, "inventory record not found".into()))))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(500, e.to_string())),
+            )
+        })?
+        .ok_or_else(|| {
+            (
+                StatusCode::NOT_FOUND,
+                Json(ApiResponse::error(404, "inventory record not found".into())),
+            )
+        })?;
 
     let mut active: inventory::ActiveModel = item.into();
-    if let Some(q) = body.quantity { active.quantity = Set(q); }
-    if let Some(t) = body.low_stock_threshold { active.low_stock_threshold = Set(t); }
+    if let Some(q) = body.quantity {
+        active.quantity = Set(q);
+    }
+    if let Some(t) = body.low_stock_threshold {
+        active.low_stock_threshold = Set(t);
+    }
 
-    let updated = active.update(&state.db).await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+    let updated = active.update(&state.db).await.map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::error(500, e.to_string())),
+        )
+    })?;
 
     Ok(Json(ApiResponse::ok(InventoryResponse {
         id: updated.id,

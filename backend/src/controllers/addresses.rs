@@ -1,4 +1,8 @@
-use axum::{Json, extract::{Path, State}, http::StatusCode};
+use axum::{
+    Json,
+    extract::{Path, State},
+    http::StatusCode,
+};
 use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter, Set};
 
 use crate::{
@@ -20,19 +24,29 @@ pub async fn list(
         .filter(address::Column::DeletedAt.is_null())
         .all(&state.db)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(500, e.to_string())),
+            )
+        })?;
 
-    Ok(Json(ApiResponse::ok(addresses.into_iter().map(|a| AddressResponse {
-        id: a.id,
-        user_id: a.user_id,
-        label: a.label,
-        line1: a.line1,
-        line2: a.line2,
-        city: a.city,
-        state: a.state,
-        is_default: a.is_default,
-        created_at: a.created_at.to_rfc3339(),
-    }).collect())))
+    Ok(Json(ApiResponse::ok(
+        addresses
+            .into_iter()
+            .map(|a| AddressResponse {
+                id: a.id,
+                user_id: a.user_id,
+                label: a.label,
+                line1: a.line1,
+                line2: a.line2,
+                city: a.city,
+                state: a.state,
+                is_default: a.is_default,
+                created_at: a.created_at.to_rfc3339(),
+            })
+            .collect(),
+    )))
 }
 
 pub async fn create(
@@ -52,7 +66,12 @@ pub async fn create(
     }
     .insert(&state.db)
     .await
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+    .map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::error(500, e.to_string())),
+        )
+    })?;
 
     Ok(Json(ApiResponse::ok(AddressResponse {
         id: a.id,
@@ -78,19 +97,45 @@ pub async fn update(
         .filter(address::Column::DeletedAt.is_null())
         .one(&state.db)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?
-        .ok_or_else(|| (StatusCode::NOT_FOUND, Json(ApiResponse::error(404, "address not found".into()))))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(500, e.to_string())),
+            )
+        })?
+        .ok_or_else(|| {
+            (
+                StatusCode::NOT_FOUND,
+                Json(ApiResponse::error(404, "address not found".into())),
+            )
+        })?;
 
     let mut active: address::ActiveModel = a.into();
-    if let Some(v) = body.label { active.label = Set(v); }
-    if let Some(v) = body.line1 { active.line1 = Set(v); }
-    if let Some(v) = body.line2 { active.line2 = Set(Some(v)); }
-    if let Some(v) = body.city { active.city = Set(v); }
-    if let Some(v) = body.state { active.state = Set(v); }
-    if let Some(v) = body.is_default { active.is_default = Set(v); }
+    if let Some(v) = body.label {
+        active.label = Set(v);
+    }
+    if let Some(v) = body.line1 {
+        active.line1 = Set(v);
+    }
+    if let Some(v) = body.line2 {
+        active.line2 = Set(Some(v));
+    }
+    if let Some(v) = body.city {
+        active.city = Set(v);
+    }
+    if let Some(v) = body.state {
+        active.state = Set(v);
+    }
+    if let Some(v) = body.is_default {
+        active.is_default = Set(v);
+    }
 
-    let updated = active.update(&state.db).await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+    let updated = active.update(&state.db).await.map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::error(500, e.to_string())),
+        )
+    })?;
 
     Ok(Json(ApiResponse::ok(AddressResponse {
         id: updated.id,
@@ -115,13 +160,27 @@ pub async fn delete(
         .filter(address::Column::DeletedAt.is_null())
         .one(&state.db)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?
-        .ok_or_else(|| (StatusCode::NOT_FOUND, Json(ApiResponse::error(404, "address not found".into()))))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(500, e.to_string())),
+            )
+        })?
+        .ok_or_else(|| {
+            (
+                StatusCode::NOT_FOUND,
+                Json(ApiResponse::error(404, "address not found".into())),
+            )
+        })?;
 
     let mut active: address::ActiveModel = a.into();
     active.deleted_at = Set(Some(chrono::Utc::now()));
-    active.update(&state.db).await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+    active.update(&state.db).await.map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::error(500, e.to_string())),
+        )
+    })?;
 
     Ok(Json(ApiResponse::ok(())))
 }

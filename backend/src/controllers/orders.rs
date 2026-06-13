@@ -1,4 +1,8 @@
-use axum::{Json, extract::{Path, State}, http::StatusCode};
+use axum::{
+    Json,
+    extract::{Path, State},
+    http::StatusCode,
+};
 use rust_decimal::Decimal;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, EntityTrait, ModelTrait, QueryFilter, QueryOrder, Set,
@@ -7,11 +11,9 @@ use sea_orm::{
 use crate::{
     dto::{
         common::ApiResponse,
-        order::{
-            CreateOrderRequest, OrderItemResponse, OrderResponse, UpdateOrderStatusRequest,
-        },
+        order::{CreateOrderRequest, OrderItemResponse, OrderResponse, UpdateOrderStatusRequest},
     },
-    models::{inventory, order, order_item, product, order_item::Entity as OrderItem},
+    models::{inventory, order, order_item, order_item::Entity as OrderItem, product},
     state::AppState,
     utils::auth::AuthUser,
 };
@@ -29,8 +31,21 @@ pub async fn create(
             .filter(product::Column::DeletedAt.is_null())
             .one(&state.db)
             .await
-            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?
-            .ok_or_else(|| (StatusCode::BAD_REQUEST, Json(ApiResponse::error(400, format!("product {} not found", item.product_id)))))?;
+            .map_err(|e| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse::error(500, e.to_string())),
+                )
+            })?
+            .ok_or_else(|| {
+                (
+                    StatusCode::BAD_REQUEST,
+                    Json(ApiResponse::error(
+                        400,
+                        format!("product {} not found", item.product_id),
+                    )),
+                )
+            })?;
 
         let unit_price = prod.price;
         total += unit_price * Decimal::from(item.quantity);
@@ -50,7 +65,12 @@ pub async fn create(
             .order_by(inventory::Column::Id, sea_orm::Order::Asc)
             .all(&state.db)
             .await
-            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+            .map_err(|e| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse::error(500, e.to_string())),
+                )
+            })?;
 
         let mut remaining = item.quantity;
         for batch in &batches {
@@ -63,14 +83,20 @@ pub async fn create(
             let mut active: inventory::ActiveModel = batch.clone().into();
             active.quantity = Set(batch.quantity - deduct);
             active.update(&state.db).await.map_err(|e| {
-                (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string())))
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse::error(500, e.to_string())),
+                )
             })?;
         }
 
         if remaining > 0 {
             return Err((
                 StatusCode::CONFLICT,
-                Json(ApiResponse::error(409, format!("insufficient stock for product {}", item.product_id))),
+                Json(ApiResponse::error(
+                    409,
+                    format!("insufficient stock for product {}", item.product_id),
+                )),
             ));
         }
     }
@@ -86,7 +112,12 @@ pub async fn create(
     }
     .insert(&state.db)
     .await
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+    .map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::error(500, e.to_string())),
+        )
+    })?;
 
     let mut order_items_resp = Vec::new();
     for (product_id, qty) in items_to_insert {
@@ -98,7 +129,12 @@ pub async fn create(
         }
         .insert(&state.db)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(500, e.to_string())),
+            )
+        })?;
         order_items_resp.push(OrderItemResponse {
             id: oi.id,
             product_id: oi.product_id,
@@ -127,7 +163,12 @@ pub async fn list(
         .filter(order::Column::DeletedAt.is_null())
         .all(&state.db)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(500, e.to_string())),
+            )
+        })?;
 
     let mut responses = Vec::new();
     for o in orders {
@@ -144,10 +185,22 @@ pub async fn get(
         .filter(order::Column::DeletedAt.is_null())
         .one(&state.db)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?
-        .ok_or_else(|| (StatusCode::NOT_FOUND, Json(ApiResponse::error(404, "order not found".into()))))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(500, e.to_string())),
+            )
+        })?
+        .ok_or_else(|| {
+            (
+                StatusCode::NOT_FOUND,
+                Json(ApiResponse::error(404, "order not found".into())),
+            )
+        })?;
 
-    Ok(Json(ApiResponse::ok(build_order_response(&state.db, ord).await?)))
+    Ok(Json(ApiResponse::ok(
+        build_order_response(&state.db, ord).await?,
+    )))
 }
 
 pub async fn update_status(
@@ -159,25 +212,43 @@ pub async fn update_status(
         .filter(order::Column::DeletedAt.is_null())
         .one(&state.db)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?
-        .ok_or_else(|| (StatusCode::NOT_FOUND, Json(ApiResponse::error(404, "order not found".into()))))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(500, e.to_string())),
+            )
+        })?
+        .ok_or_else(|| {
+            (
+                StatusCode::NOT_FOUND,
+                Json(ApiResponse::error(404, "order not found".into())),
+            )
+        })?;
 
     let mut active: order::ActiveModel = ord.into();
     active.status = Set(body.status);
-    let updated = active.update(&state.db).await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+    let updated = active.update(&state.db).await.map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::error(500, e.to_string())),
+        )
+    })?;
 
-    Ok(Json(ApiResponse::ok(build_order_response(&state.db, updated).await?)))
+    Ok(Json(ApiResponse::ok(
+        build_order_response(&state.db, updated).await?,
+    )))
 }
 
 async fn build_order_response(
     db: &sea_orm::DatabaseConnection,
     o: order::Model,
 ) -> Result<OrderResponse, (StatusCode, Json<ApiResponse<()>>)> {
-    let items = o.find_related(OrderItem)
-        .all(db)
-        .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+    let items = o.find_related(OrderItem).all(db).await.map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse::error(500, e.to_string())),
+        )
+    })?;
 
     Ok(OrderResponse {
         id: o.id,
@@ -185,11 +256,14 @@ async fn build_order_response(
         anon_name: o.anon_name,
         status: o.status,
         total: o.total,
-        items: items.into_iter().map(|i| OrderItemResponse {
-            id: i.id,
-            product_id: i.product_id,
-            quantity: i.quantity,
-        }).collect(),
+        items: items
+            .into_iter()
+            .map(|i| OrderItemResponse {
+                id: i.id,
+                product_id: i.product_id,
+                quantity: i.quantity,
+            })
+            .collect(),
         shipping_address_id: o.shipping_address_id,
         notes: o.notes,
         created_at: o.created_at.to_rfc3339(),
