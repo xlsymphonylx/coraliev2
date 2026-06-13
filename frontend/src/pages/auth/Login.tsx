@@ -23,6 +23,7 @@ function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -45,14 +46,12 @@ function Login() {
         setToken(data.data.token);
         navigate("/", { replace: true });
       } else {
-        setError(data.message || "Error al iniciar sesión");
+        setError(JSON.stringify(data, null, 2) || "Error al iniciar sesión");
       }
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ||
-        "Error de conexión. Intenta de nuevo.";
-      setError(msg);
+      const axiosErr = err as { response?: { data?: unknown }; message?: string; code?: string };
+      const raw = axiosErr.response?.data;
+      setError(raw ? JSON.stringify(raw, null, 2) : JSON.stringify({ message: axiosErr.message, code: axiosErr.code }, null, 2));
     } finally {
       setLoading(false);
     }
@@ -70,7 +69,27 @@ function Login() {
         <h1 className="auth-page__title">Iniciar sesión</h1>
 
         <form className="auth-page__form" onSubmit={handleSubmit}>
-          {error && <p className="auth-page__error">{error}</p>}
+          {error && (
+            <div className="auth-page__error-wrap">
+              <p className="auth-page__error">{error}</p>
+              <button type="button" className="auth-page__copy" onClick={() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+                navigator.clipboard?.writeText(error).catch(() => {
+                  const ta = document.createElement('textarea');
+                  ta.value = error;
+                  ta.style.position = 'fixed';
+                  ta.style.opacity = '0';
+                  document.body.appendChild(ta);
+                  ta.select();
+                  document.execCommand('copy');
+                  document.body.removeChild(ta);
+                });
+              }}>
+                {copied ? "¡Copiado!" : "Copiar mensaje"}
+              </button>
+            </div>
+          )}
 
           <label className="auth-page__field">
             <span className="auth-page__label">Usuario</span>

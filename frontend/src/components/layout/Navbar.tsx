@@ -1,5 +1,7 @@
-import { HomeIcon, MessageCircle, Package } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { HomeIcon, LogOut, Menu, MessageCircle, Package, ShieldCheck, X } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { clearToken } from "@/api/client";
 import UserDropdown from "./UserDropdown";
 import "@/components/layout/styles/Navbar.scss";
 
@@ -10,39 +12,64 @@ type NavbarProps = {
 };
 
 function Navbar({ isAuthenticated, isAdmin, username }: NavbarProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    clearToken();
+    setMenuOpen(false);
+    navigate("/login", { replace: true });
+  };
+
   return (
     <nav className="navbar">
       <div className="navbar__brand">
         <img src="logo.png" alt="" className="navbar__brand-file" />
       </div>
-      <div className="navbar__links">
-        <Link to="/" className="navbar__link">
+
+      <button className="navbar__hamburger" onClick={() => setMenuOpen(!menuOpen)}>
+        {menuOpen ? <X size={24} /> : <Menu size={24} />}
+      </button>
+
+      <div className={`navbar__links${menuOpen ? " navbar__links--open" : ""}`}>
+        <Link to="/" className="navbar__link" onClick={() => setMenuOpen(false)}>
           <HomeIcon />
           Inicio
         </Link>
-        <Link to="/productos?category=maquillaje" className="navbar__link">
+        <Link to="/productos?category=maquillaje" className="navbar__link" onClick={() => setMenuOpen(false)}>
           <Package />
           Productos
         </Link>
-        <Link to="/" className="navbar__link">
+        <Link to="/" className="navbar__link" onClick={() => setMenuOpen(false)}>
           <MessageCircle />
           Contacto
         </Link>
+        {!isAuthenticated ? (
+          <div className="navbar__mobile-auth">
+            <Link to="/login" className="navbar__action" onClick={() => setMenuOpen(false)}>Login</Link>
+            <Link to="/signup" className="navbar__action" onClick={() => setMenuOpen(false)}>Signup</Link>
+          </div>
+        ) : (
+          <div className="navbar__mobile-auth">
+            {isAdmin && (
+              <Link to="/admin" className="navbar__action" onClick={() => setMenuOpen(false)}>
+                <ShieldCheck size={16} /> Admin
+              </Link>
+            )}
+            <button className="navbar__action navbar__action--logout" onClick={handleLogout}>
+              <LogOut size={16} /> Cerrar sesión
+            </button>
+          </div>
+        )}
       </div>
+
       <div className="navbar__user-area">
         {isAuthenticated ? (
           <UserDropdown isAdmin={isAdmin} username={username} />
         ) : (
           <div className="navbar__auth-actions">
-            <Link
-              to="/login"
-              className="navbar__action navbar__action--secondary"
-            >
-              Login
-            </Link>
-            <Link to="/signup" className="navbar__action">
-              Signup
-            </Link>
+            <Link to="/login" className="navbar__action navbar__action--secondary">Login</Link>
+            <Link to="/signup" className="navbar__action">Signup</Link>
           </div>
         )}
       </div>

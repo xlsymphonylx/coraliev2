@@ -3,7 +3,16 @@ import axios from 'axios'
 const TOKEN_KEY = 'coralie_token'
 
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || `http://${location.hostname}:3000`,
+  baseURL: '',
+})
+
+// Prefix all API calls with /api so Vite proxy (dev) or Tailscale Serve (prod)
+// forwards them to the backend
+client.interceptors.request.use((config) => {
+  if (!config.url?.startsWith('http')) {
+    config.url = `/api${config.url}`
+  }
+  return config
 })
 
 function getAuthorizationHeader() {

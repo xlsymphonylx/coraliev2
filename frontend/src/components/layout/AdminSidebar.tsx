@@ -1,15 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard,
-  Package,
-  Layers,
-  Tags,
-  ShoppingCart,
-  Users,
-  Warehouse,
-  Building2,
-  Percent,
-  LogOut,
+  LayoutDashboard, Package, Layers, Tags, ShoppingCart, Users,
+  Warehouse, Building2, Percent, LogOut,
 } from "lucide-react";
 import { clearToken } from "@/api/client";
 import { useNavigate } from "react-router-dom";
@@ -26,7 +18,12 @@ const navItems = [
   { to: "/admin/descuentos", label: "Descuentos", icon: Percent },
 ];
 
-function AdminSidebar() {
+type AdminSidebarProps = {
+  open: boolean;
+  onClose: () => void;
+};
+
+function AdminSidebar({ open, onClose }: AdminSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -36,7 +33,7 @@ function AdminSidebar() {
   };
 
   return (
-    <aside className="admin-sidebar">
+    <aside className={`admin-sidebar${open ? " admin-sidebar--open" : ""}`}>
       <div className="admin-sidebar__brand">
         <img src="/logo.png" alt="Coralie" className="admin-sidebar__logo" />
       </div>
@@ -51,6 +48,7 @@ function AdminSidebar() {
               key={item.to}
               to={item.to}
               className={`admin-sidebar__link${isActive ? " admin-sidebar__link--active" : ""}`}
+              onClick={onClose}
             >
               <Icon size={18} />
               <span>{item.label}</span>
@@ -60,11 +58,7 @@ function AdminSidebar() {
       </nav>
 
       <div className="admin-sidebar__footer">
-        <button
-          type="button"
-          className="admin-sidebar__logout"
-          onClick={handleLogout}
-        >
+        <button type="button" className="admin-sidebar__logout" onClick={handleLogout}>
           <LogOut size={18} />
           <span>Cerrar sesión</span>
         </button>
