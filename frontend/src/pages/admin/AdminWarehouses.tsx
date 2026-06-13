@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import client from "@/api/client";
+import CrudPage from "@/components/admin/CrudPage";
 import "@/pages/admin/AdminWarehouses.scss";
 import "@/pages/admin/AdminWarehouses_responsive.scss";
 
@@ -21,6 +22,7 @@ function AdminWarehouses() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
   const [selectedW, setSelectedW] = useState<number | null>(null);
 
   const fetch = async () => {
@@ -67,19 +69,22 @@ function AdminWarehouses() {
     finally { setSaving(false); }
   };
 
-  const filteredUnits = selectedW ? units.filter((u) => u.warehouse_id === selectedW) : units;
+  const filteredWarehouses = warehouses.filter((w) =>
+    !search || w.name.toLowerCase().includes(search.toLowerCase())
+  );
+  const filteredUnits = (selectedW ? units.filter((u) => u.warehouse_id === selectedW) : units).filter((u) =>
+    !search || u.code.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <div className="admin-wh">
-      <div className="admin-wh__header">
-        <h1 className="admin-wh__title">Almacenes</h1>
-        <div className="admin-wh__tabs">
-          <button className={`admin-wh__tab${view === "warehouses" ? " admin-wh__tab--active" : ""}`} onClick={() => setParams({ view: "warehouses" })}>Almacenes</button>
-          <button className={`admin-wh__tab${view === "units" ? " admin-wh__tab--active" : ""}`} onClick={() => setParams({ view: "units" })}>Ubicaciones</button>
-        </div>
-      </div>
-
-      {error && <p className="admin-wh__error">{error}</p>}
+    <CrudPage
+      title="Almacenes" search={{ placeholder: "Buscar por nombre o código...", value: search, onChange: setSearch }}
+      tabs={[
+        { key: "warehouses", label: "Almacenes", active: view === "warehouses", onClick: () => setParams({ view: "warehouses" }) },
+        { key: "units", label: "Ubicaciones", active: view === "units", onClick: () => setParams({ view: "units" }) },
+      ]}
+    >
+      {error && <p className="error-msg">{error}</p>}
 
       {view === "warehouses" && (
         <>
@@ -92,13 +97,13 @@ function AdminWarehouses() {
           </form>
 
           {loading ? <p className="admin-wh__status">Cargando...</p>
-          : warehouses.length === 0 ? <p className="admin-wh__status">Sin almacenes</p>
+          : filteredWarehouses.length === 0 ? <p className="admin-wh__status">Sin almacenes</p>
           : (
             <div className="admin-wh__table-wrap">
               <table className="admin-wh__table">
                 <thead><tr><th>ID</th><th>Nombre</th><th>Ubicaciones</th><th>Acciones</th></tr></thead>
                 <tbody>
-                  {warehouses.map((w) => (
+                  {filteredWarehouses.map((w) => (
                     <tr key={w.id}>
                       <td>{w.id}</td><td>{w.name}</td>
                       <td>{units.filter((u) => u.warehouse_id === w.id).length}</td>
@@ -123,7 +128,7 @@ function AdminWarehouses() {
           <form className="admin-wh__form" onSubmit={handleSaveS}>
             <select className="admin-wh__input" value={sWarehouse} onChange={(e) => setSWarehouse(e.target.value)} required={!editSId} disabled={!!editSId}>
               <option value="">Seleccionar almacén...</option>
-              {warehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
+              {filteredWarehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
             </select>
             <input className="admin-wh__input" value={sCode} onChange={(e) => setSCode(e.target.value)} placeholder="Código (ej: A-01)" required />
             <button className="admin-wh__btn" type="submit" disabled={saving}>
@@ -135,7 +140,7 @@ function AdminWarehouses() {
           <div className="admin-wh__filter">
             <select value={selectedW ?? ""} onChange={(e) => setSelectedW(e.target.value ? Number(e.target.value) : null)}>
               <option value="">Todos los almacenes</option>
-              {warehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
+              {filteredWarehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
             </select>
           </div>
 
@@ -165,7 +170,7 @@ function AdminWarehouses() {
           )}
         </>
       )}
-    </div>
+    </CrudPage>
   );
 }
 

@@ -1,5 +1,6 @@
 use axum::Router;
 use tokio::net::TcpListener;
+use tower_http::cors::{CorsLayer, Any};
 
 use backend::{
     routes,
@@ -16,11 +17,24 @@ async fn main() {
         jwt_secret: config.jwt_secret,
     };
 
-    let app = Router::new().merge(routes::router()).with_state(state);
+    let cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_methods(Any)
+        .allow_headers(Any);
+
+    let app = Router::new()
+        .merge(routes::router())
+        .layer(cors)
+        .with_state(state);
 
     let listener = TcpListener::bind(format!("0.0.0.0:{}", config.port))
         .await
         .unwrap();
 
-    axum::serve(listener, app).await.unwrap();
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<std::net::SocketAddr>(),
+    )
+    .await
+    .unwrap();
 }

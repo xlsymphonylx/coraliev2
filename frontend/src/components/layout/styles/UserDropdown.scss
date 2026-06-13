@@ -7,10 +7,10 @@
     @include flex-layout($gap: 0);
     width: 2.5rem;
     height: 2.5rem;
-    border: 1px solid var(--border);
+    border: 2px solid var(--coralie-white);
     border-radius: 999px;
-    background: var(--bg-raised);
-    color: var(--text);
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--coralie-white);
     cursor: pointer;
     list-style: none;
 
@@ -23,17 +23,19 @@
     position: absolute;
     top: calc(100% + 0.5rem);
     right: 0;
-    min-width: 12rem;
-    padding: 0.75rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--bg-raised);
+    min-width: 13rem;
+    padding: 0.5rem;
+    border: 1px solid var(--coralie-rose);
+    border-radius: var(--radius);
+    background: var(--coralie-white);
     box-shadow: var(--shadow);
-    z-index: 5;
+    z-index: 50;
   }
 
   &__user-info {
-    margin-bottom: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.25rem;
+    border-bottom: 1px solid var(--coralie-blush);
   }
 
   &__user-info-username,
@@ -41,27 +43,40 @@
     margin: 0;
   }
 
+  &__user-info-username {
+    font-family: var(--coralie-contrast-font);
+    font-size: 0.95rem;
+    color: var(--coralie-dark);
+  }
+
   &__user-info-role {
-    color: var(--text-muted);
-    font-size: 0.875rem;
+    font-family: var(--coralie-main-font);
+    color: var(--coralie-spicy);
+    font-size: 0.8rem;
+    font-weight: 600;
   }
 
   &__options {
-    @include flex-layout($dir: column, $aItems: stretch);
+    @include flex-layout($dir: column, $aItems: stretch, $gap: 0.15rem);
   }
 
   &__options-item {
-    @include flex-layout($jContent: flex-start);
-    padding: 0.5rem 0.75rem;
+    @include flex-layout($jContent: flex-start, $gap: 0.6rem);
+    width: 100%;
+    padding: 0.55rem 0.75rem;
+    border: none;
     border-radius: var(--radius-sm);
-    color: inherit;
-  }
-
-  &__options-item--button {
-    border: 0;
     background: transparent;
+    color: var(--coralie-dark);
+    font-family: var(--coralie-main-font);
+    font-size: 0.875rem;
     cursor: pointer;
-    font: inherit;
     text-align: left;
+    box-sizing: border-box;
+
+    &:hover {
+      background: var(--coralie-petal);
+      color: var(--coralie-spicy);
+    }
   }
 }

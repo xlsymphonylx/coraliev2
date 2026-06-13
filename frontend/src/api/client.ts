@@ -1,13 +1,23 @@
 import axios from 'axios'
 
+const TOKEN_KEY = 'coralie_token'
+
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL || `http://${location.hostname}:3000`,
 })
 
 function getAuthorizationHeader() {
-  const authorizationHeader = client.defaults.headers.common['Authorization']
+  const fromMemory = client.defaults.headers.common['Authorization']
+  if (typeof fromMemory === 'string') return fromMemory
 
-  return typeof authorizationHeader === 'string' ? authorizationHeader : null
+  // Restore from localStorage on refresh
+  const stored = localStorage.getItem(TOKEN_KEY)
+  if (stored) {
+    client.defaults.headers.common['Authorization'] = `Bearer ${stored}`
+    return `Bearer ${stored}`
+  }
+
+  return null
 }
 
 function parseSessionToken() {
@@ -46,10 +56,12 @@ function parseSessionToken() {
 }
 
 export function setToken(token: string) {
+  localStorage.setItem(TOKEN_KEY, token)
   client.defaults.headers.common['Authorization'] = `Bearer ${token}`
 }
 
 export function clearToken() {
+  localStorage.removeItem(TOKEN_KEY)
   delete client.defaults.headers.common['Authorization']
 }
 

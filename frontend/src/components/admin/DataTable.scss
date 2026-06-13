@@ -1,0 +1,84 @@
+@use "@/base.scss" as *;
+
+.dt-wrap {
+  overflow-x: auto;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+.dt {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--coralie-main-font);
+  font-size: 0.85rem;
+  background: var(--coralie-white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+
+  th, td {
+    text-align: left;
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid var(--coralie-blush);
+  }
+
+  th {
+    font-family: var(--coralie-contrast-font);
+    font-weight: 700;
+    color: var(--coralie-mid);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid var(--coralie-rose);
+  }
+
+  td { color: var(--coralie-dark); }
+
+  tbody tr:hover { background: var(--coralie-petal); }
+}
+
+// ─── Mobile cards ────────────────────────────────────
+
+.dt-cards {
+  display: none;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  @media (max-width: 768px) {
+    display: flex;
+  }
+}
+
+.dt-card {
+  background: var(--coralie-white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  &__row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  &__label {
+    font-family: var(--coralie-contrast-font);
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--coralie-mid);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    min-width: 5rem;
+    flex-shrink: 0;
+  }
+
+  &__value {
+    font-family: var(--coralie-main-font);
+    font-size: 0.85rem;
+    color: var(--coralie-dark);
+  }
+}

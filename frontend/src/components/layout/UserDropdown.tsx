@@ -29,23 +29,23 @@ function UserDropdown({ isAdmin, username }: UserDropdownProps) {
           </p>
         </div>
         <div className="user-dropdown__options">
-          <div className="user-dropdown__options-item">
-            <Settings size={16} />
-            Settings
-          </div>
           {isAdmin ? (
-            <div className="user-dropdown__options-item">
+            <button
+              type="button"
+              className="user-dropdown__options-item"
+              onClick={() => navigate('/admin')}
+            >
               <ShieldCheck size={16} />
-              Admin tools
-            </div>
+              Admin
+            </button>
           ) : null}
           <button
             type="button"
-            className="user-dropdown__options-item user-dropdown__options-item--button"
+            className="user-dropdown__options-item"
             onClick={handleLogout}
           >
             <LogOut size={16} />
-            Logout
+            Cerrar sesión
           </button>
         </div>
       </div>

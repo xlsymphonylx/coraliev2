@@ -21,6 +21,8 @@ frontend/.env.*
 
 # Backend (Rust)
 backend/target/
+backend/migration/target/
+backend/data.db
 backend/**/*.rs.bk
 backend/.env
 backend/.env.*

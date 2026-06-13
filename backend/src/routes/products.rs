@@ -1,7 +1,8 @@
-use axum::{Router, extract::State, routing::{delete, get, patch, post}};
+use axum::{Router, extract::State, http::StatusCode, Json, routing::{delete, get, patch, post}};
 
 use crate::{
     controllers::products,
+    dto::common::ApiResponse,
     state::AppState,
     utils::auth::RequireAdmin,
 };
@@ -13,10 +14,12 @@ pub fn router() -> Router<AppState> {
             products::create(State(state), body).await
         }))
         .route("/{slug}", get(products::get))
-        .route("/{id}", patch(|State(state): State<AppState>, id: axum::extract::Path<i32>, _: RequireAdmin, body: axum::Json<crate::dto::product::UpdateProductRequest>| async move {
-            products::update(State(state), id, body).await
+        .route("/{slug}", patch(|State(state): State<AppState>, axum::extract::Path(slug): axum::extract::Path<String>, _: RequireAdmin, body: axum::Json<crate::dto::product::UpdateProductRequest>| async move {
+            let id: i32 = slug.parse().map_err(|_| (StatusCode::BAD_REQUEST, Json(ApiResponse::error(400, "invalid id".into()))))?;
+            products::update(State(state), axum::extract::Path(id), body).await
         }))
-        .route("/{id}", delete(|State(state): State<AppState>, id: axum::extract::Path<i32>, _: RequireAdmin| async move {
-            products::delete(State(state), id).await
+        .route("/{slug}", delete(|State(state): State<AppState>, axum::extract::Path(slug): axum::extract::Path<String>, _: RequireAdmin| async move {
+            let id: i32 = slug.parse().map_err(|_| (StatusCode::BAD_REQUEST, Json(ApiResponse::error(400, "invalid id".into()))))?;
+            products::delete(State(state), axum::extract::Path(id)).await
         }))
 }

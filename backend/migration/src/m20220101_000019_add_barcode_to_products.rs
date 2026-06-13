@@ -13,8 +13,7 @@ impl MigrationTrait for Migration {
                     .add_column_if_not_exists(
                         ColumnDef::new(Products::Barcode)
                             .string()
-                            .null()
-                            .unique_key(),
+                            .null(),
                     )
                     .to_owned(),
             )

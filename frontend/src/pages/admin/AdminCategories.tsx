@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import client from "@/api/client";
+import CrudPage from "@/components/admin/CrudPage";
+import DataTable from "@/components/admin/DataTable";
+import type { Column } from "@/components/admin/DataTable";
 import "@/pages/admin/AdminCategories.scss";
-import "@/pages/admin/AdminCategories_responsive.scss";
 
 type Category = { id: number; name: string; slug: string; description: string | null; parent_id: number | null };
 
@@ -63,7 +65,7 @@ function AdminCategories() {
           <h1 className="admin-cat__title">{action === "crear" ? "Nueva categoría" : "Editar categoría"}</h1>
           <button className="admin-cat__back" onClick={goList}>Volver</button>
         </div>
-        {error && <p className="admin-cat__error">{error}</p>}
+        {error && <p className="error-msg">{error}</p>}
         <form className="admin-cat__form" onSubmit={handleSave}>
           <label className="admin-cat__field"><span>Nombre *</span><input value={name} onChange={(e) => setName(e.target.value)} required /></label>
           <label className="admin-cat__field"><span>Slug</span><input value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="Auto-generado si se deja vacío" /></label>
@@ -84,35 +86,32 @@ function AdminCategories() {
     );
   }
 
-  return (
-    <div className="admin-cat">
-      <div className="admin-cat__header">
-        <h1 className="admin-cat__title">Categorías</h1>
-        <button className="admin-cat__create" onClick={() => setParams({ action: "crear" })}>+ Nueva</button>
-      </div>
-      {error && <p className="admin-cat__error">{error}</p>}
-      {loading ? <p className="admin-cat__status">Cargando...</p>
-      : items.length === 0 ? <p className="admin-cat__status">Sin categorías</p>
-      : (
-        <div className="admin-cat__table-wrap">
-          <table className="admin-cat__table">
-            <thead><tr><th>ID</th><th>Nombre</th><th>Slug</th><th>Padre</th><th>Acciones</th></tr></thead>
-            <tbody>
-              {items.map((c) => (
-                <tr key={c.id}>
-                  <td>{c.id}</td><td>{c.name}</td><td>{c.slug}</td>
-                  <td>{items.find((p) => p.id === c.parent_id)?.name ?? "—"}</td>
-                  <td className="admin-cat__actions-cell">
-                    <button onClick={() => goEdit(c.id)}>Editar</button>
-                    <button className="admin-cat__delete" onClick={() => handleDelete(c.id)}>Eliminar</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+  const [search, setSearch] = useState("");
+
+  const filtered = items.filter((c) =>
+    !search || c.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const columns: Column<Category>[] = [
+    { header: "ID", render: (c) => c.id },
+    { header: "Nombre", render: (c) => c.name },
+    { header: "Slug", render: (c) => c.slug, hideOnMobile: true },
+    { header: "Padre", render: (c) => items.find((p) => p.id === c.parent_id)?.name ?? "—", hideOnMobile: true },
+    {
+      header: "Acción",
+      render: (c) => (
+        <div className="cell-actions">
+          <button onClick={() => goEdit(c.id)}>Editar</button>
+          <button className="admin-cat__delete" onClick={() => handleDelete(c.id)}>Eliminar</button>
         </div>
-      )}
-    </div>
+      ),
+    },
+  ];
+
+  return (
+    <CrudPage title="Categorías" action={{ label: "+ Nueva", onClick: () => setParams({ action: "crear" }) }} search={{ placeholder: "Buscar por nombre...", value: search, onChange: setSearch }}>
+      <DataTable columns={columns} data={filtered} keyExtractor={(c) => c.id} loading={loading} error={error} emptyMessage={search ? "Sin resultados" : "Sin categorías"} />
+    </CrudPage>
   );
 }
 

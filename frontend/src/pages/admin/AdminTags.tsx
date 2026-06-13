@@ -1,16 +1,25 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import client from "@/api/client";
-import "@/pages/admin/AdminTags.scss";
-import "@/pages/admin/AdminTags_responsive.scss";
+import CrudPage from "@/components/admin/CrudPage";
+import DataTable from "@/components/admin/DataTable";
+import type { Column } from "@/components/admin/DataTable";
 
 type Tag = { id: number; name: string; slug: string };
 
 function AdminTags() {
+  const [params, setParams] = useSearchParams();
+  const creating = params.get("action") === "crear";
+
   const [items, setItems] = useState<Tag[]>([]);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+
+  const openForm = () => setParams({ action: "crear" });
+  const closeForm = () => { setName(""); setParams({}); };
 
   const fetch = async () => {
     setLoading(true);
@@ -22,14 +31,10 @@ function AdminTags() {
   useEffect(() => { fetch(); }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault(); setCreating(true); setError(null);
-    try {
-      await client.post("/tags", { name });
-      setName("");
-      fetch();
-    } catch (err: unknown) {
-      setError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Error");
-    } finally { setCreating(false); }
+    e.preventDefault(); setSaving(true); setError(null);
+    try { await client.post("/tags", { name }); closeForm(); fetch(); }
+    catch (err: unknown) { setError((err as any)?.response?.data?.message ?? "Error"); }
+    finally { setSaving(false); }
   };
 
   const handleDelete = async (id: number) => {
@@ -38,37 +43,31 @@ function AdminTags() {
     catch { setError("Error al eliminar"); }
   };
 
+  const filtered = items.filter((t) =>
+    !search || t.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const columns: Column<Tag>[] = [
+    { header: "ID", render: (t) => t.id },
+    { header: "Nombre", render: (t) => t.name },
+    { header: "Slug", render: (t) => t.slug, hideOnMobile: true },
+    { header: "Acción", render: (t) => <button className="btn-danger" onClick={() => handleDelete(t.id)}>Eliminar</button> },
+  ];
+
   return (
-    <div className="admin-tags">
-      <div className="admin-tags__header">
-        <h1 className="admin-tags__title">Etiquetas</h1>
-      </div>
+    <CrudPage title="Etiquetas" action={{ label: "+ Nueva", onClick: openForm }} search={{ placeholder: "Buscar por nombre...", value: search, onChange: setSearch }}>
+      {error && <p className="error-msg">{error}</p>}
 
-      {error && <p className="admin-tags__error">{error}</p>}
-
-      <form className="admin-tags__create" onSubmit={handleCreate}>
-        <input className="admin-tags__input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre de la etiqueta" required />
-        <button className="admin-tags__btn" type="submit" disabled={creating}>{creating ? "..." : "+ Crear"}</button>
-      </form>
-
-      {loading ? <p className="admin-tags__status">Cargando...</p>
-      : items.length === 0 ? <p className="admin-tags__status">Sin etiquetas</p>
-      : (
-        <div className="admin-tags__table-wrap">
-          <table className="admin-tags__table">
-            <thead><tr><th>ID</th><th>Nombre</th><th>Slug</th><th>Acción</th></tr></thead>
-            <tbody>
-              {items.map((t) => (
-                <tr key={t.id}>
-                  <td>{t.id}</td><td>{t.name}</td><td>{t.slug}</td>
-                  <td><button className="admin-tags__delete" onClick={() => handleDelete(t.id)}>Eliminar</button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {creating && (
+        <form className="crud__form" onSubmit={handleCreate}>
+          <input className="field-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre de la etiqueta" required style={{ flex: 1, minWidth: "10rem" }} />
+          <button className="crud__action" type="submit" disabled={saving}>{saving ? "..." : "Guardar"}</button>
+          <button className="btn-secondary" type="button" onClick={closeForm}>Cancelar</button>
+        </form>
       )}
-    </div>
+
+      <DataTable columns={columns} data={filtered} keyExtractor={(t) => t.id} loading={loading} emptyMessage={search ? "Sin resultados" : "Sin etiquetas"} />
+    </CrudPage>
   );
 }
 

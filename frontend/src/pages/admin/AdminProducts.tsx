@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { Scanner } from "@yudiel/react-qr-scanner";
 import client, { setToken } from "@/api/client";
+import CrudPage from "@/components/admin/CrudPage";
 import "@/pages/admin/AdminProducts.scss";
 import "@/pages/admin/AdminProducts_responsive.scss";
 
@@ -49,6 +51,7 @@ function AdminProducts() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [form, setForm] = useState<ProductForm>(emptyForm);
+  const [showScan, setShowScan] = useState(false);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -221,8 +224,28 @@ function AdminProducts() {
 
           <label className="admin-products__field">
             <span>Código de barras</span>
-            <input name="barcode" value={form.barcode} onChange={handleFormChange} placeholder="Escanea o escribe el código" />
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <input name="barcode" value={form.barcode} onChange={handleFormChange} placeholder="Escanea o escribe el código" style={{ flex: 1 }} />
+              <button type="button" className="admin-products__save" onClick={() => setShowScan(!showScan)} style={{ whiteSpace: 'nowrap', padding: '0.6rem 0.85rem', fontSize: '0.8rem' }}>
+                {showScan ? "Cerrar" : "📷"}
+              </button>
+            </div>
           </label>
+
+          {showScan && (
+            <div style={{ maxWidth: '300px', borderRadius: '8px', overflow: 'hidden', marginBottom: '0.5rem' }}>
+              <Scanner
+                onScan={(codes) => {
+                  const code = codes[0]?.rawValue;
+                  if (code) { setForm((f) => ({ ...f, barcode: code })); setShowScan(false); }
+                }}
+                onError={(e) => console.error(e)}
+                formats={['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'code_93', 'codabar', 'itf']}
+                allowMultiple scanDelay={1500} sound
+                styles={{ container: { width: '100%', borderRadius: '8px', overflow: 'hidden' } }}
+              />
+            </div>
+          )}
 
           <div className="admin-products__actions">
             <button type="submit" className="admin-products__save" disabled={saving}>
@@ -238,32 +261,16 @@ function AdminProducts() {
   }
 
   return (
-    <div className="admin-products">
-      <div className="admin-products__header">
-        <h1 className="admin-products__title">Productos</h1>
-        <button className="admin-products__create" onClick={goToCreate}>
-          + Nuevo
-        </button>
-      </div>
+    <CrudPage
+      title="Productos"
+      action={{ label: "+ Nuevo", onClick: goToCreate }}
+      search={{ placeholder: "Buscar por nombre o código de barras...", value: search, onChange: setSearch }}
+    >
+      {error && <p className="error-msg">{error}</p>}
 
-      <div className="admin-products__toolbar">
-        <input
-          className="admin-products__search"
-          type="text"
-          placeholder="Buscar por nombre o código de barras..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
-      {error && <p className="admin-products__error">{error}</p>}
-
-      {loading ? (
-        <p className="admin-products__status">Cargando productos...</p>
+      {loading ? (<p className="status-msg">Cargando productos...</p>
       ) : filtered.length === 0 ? (
-        <p className="admin-products__status">
-          {search ? "Sin resultados" : "No hay productos registrados"}
-        </p>
+        <p className="status-msg">{search ? "Sin resultados" : "No hay productos registrados"}</p>
       ) : (
         <div className="admin-products__table-wrap">
           <table className="admin-products__table">
@@ -287,11 +294,9 @@ function AdminProducts() {
                   <td>${p.price}</td>
                   <td>{p.product_type}</td>
                   <td>{p.category?.name ?? "—"}</td>
-                  <td className="admin-products__actions-cell">
+                  <td className="cell-actions">
                     <button onClick={() => goToEdit(p.id)}>Editar</button>
-                    <button onClick={() => handleDelete(p.id)} className="admin-products__delete-btn">
-                      Eliminar
-                    </button>
+                    <button onClick={() => handleDelete(p.id)} className="admin-products__delete-btn">Eliminar</button>
                   </td>
                 </tr>
               ))}
@@ -299,7 +304,7 @@ function AdminProducts() {
           </table>
         </div>
       )}
-    </div>
+    </CrudPage>
   );
 }
 

@@ -11,16 +11,36 @@
 
   &__scanner { margin-bottom: 1.5rem; }
 
-  &__scan-field {
-    display: flex; flex-direction: column; gap: 0.35rem;
-
-    span {
-      font-family: var(--coralie-contrast-font);
-      font-size: 0.85rem; font-weight: 600; color: var(--coralie-mid);
-    }
+  &__scan-label {
+    display: block;
+    font-family: var(--coralie-contrast-font);
+    font-size: 0.85rem; font-weight: 600; color: var(--coralie-mid);
+    margin-bottom: 0.5rem;
   }
 
-  &__scan-row { display: flex; gap: 0.5rem; }
+  &__camera {
+    max-width: 400px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-bottom: 0.75rem;
+    background: var(--coralie-dark);
+  }
+
+  &__manual {
+    margin-top: 0.5rem;
+  }
+
+  &__manual-toggle {
+    font-family: var(--coralie-main-font);
+    font-size: 0.8rem;
+    color: var(--coralie-mid);
+    cursor: pointer;
+
+    &:hover { color: var(--coralie-spicy); }
+  }
+
+  &__scan-row { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
 
   &__scan-input {
     flex: 1; max-width: 24rem; padding: 0.7rem 1rem;
