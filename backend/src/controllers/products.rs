@@ -57,6 +57,9 @@ pub async fn list(
                 .add(product::Column::Description.like(&pattern)),
         );
     }
+    if let Some(bc) = q.barcode {
+        query = query.filter(product::Column::Barcode.eq(bc));
+    }
     if let Some(tag_id) = q.tag_id {
         let pts = product_tag::Entity::find()
             .filter(product_tag::Column::TagId.eq(tag_id))
@@ -144,6 +147,7 @@ pub async fn create(
         price: Set(body.price),
         product_type: Set(body.product_type.unwrap_or_else(|| "simple".into())),
         category_id: Set(body.category_id),
+        barcode: Set(body.barcode),
         ..Default::default()
     }
     .insert(&state.db)
@@ -261,6 +265,9 @@ pub async fn update(
     }
     if let Some(cat_id) = body.category_id {
         active.category_id = Set(Some(cat_id));
+    }
+    if let Some(bc) = body.barcode {
+        active.barcode = Set(Some(bc));
     }
 
     let updated = active.update(&state.db).await.map_err(|e| {
@@ -478,6 +485,7 @@ async fn build_response(
         description: p.description,
         price: p.price,
         product_type: p.product_type,
+        barcode: p.barcode,
         category,
         tags: tags
             .into_iter()

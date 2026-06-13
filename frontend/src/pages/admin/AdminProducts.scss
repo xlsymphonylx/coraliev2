@@ -1,0 +1,46 @@
+@use "@/base.scss" as *;
+
+.admin-products {
+  @extend .page-panel;
+
+  &__header { @extend .page-header; }
+  &__title { @extend .page-title; }
+  &__create, &__save { @extend .btn-primary; background: var(--coralie-spicy); color: var(--coralie-white); border: none; }
+  &__back, &__cancel { @extend .btn-secondary; }
+
+  &__toolbar { margin-bottom: 1rem; }
+
+  &__search {
+    width: 100%; max-width: 24rem; padding: 0.6rem 1rem;
+    @extend .field-input;
+  }
+
+  &__error { @extend .error-msg; }
+  &__status { @extend .status-msg; }
+
+  &__table-wrap { @extend .table-wrap; }
+  &__table { @extend .data-table; }
+
+  &__barcode { font-family: var(--mono); font-size: 0.8rem; }
+  &__actions-cell { @extend .cell-actions; }
+
+  &__delete-btn {
+    &:hover { border-color: var(--coralie-rose) !important; color: var(--coralie-hot) !important; }
+  }
+
+  // ─── Form ──────────────────────────────────────────
+
+  &__form {
+    display: flex; flex-direction: column; gap: 1rem; max-width: 36rem;
+    background: var(--coralie-white); padding: 1.5rem;
+    border-radius: var(--radius); box-shadow: var(--shadow);
+  }
+
+  &__field { @extend .field-group;
+    input, select, textarea { @extend .field-input; }
+    textarea { resize: vertical; }
+  }
+
+  &__row { display: flex; gap: 1rem; }
+  &__actions { display: flex; gap: 0.75rem; margin-top: 0.5rem; }
+}

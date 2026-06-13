@@ -18,6 +18,7 @@ mod m20220101_000015_create_storage_units_table;
 mod m20220101_000016_create_inventory_table;
 mod m20220101_000017_create_orders_table;
 mod m20220101_000018_create_order_items_table;
+mod m20220101_000019_add_barcode_to_products;
 
 pub struct Migrator;
 
@@ -43,6 +44,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20220101_000016_create_inventory_table::Migration),
             Box::new(m20220101_000017_create_orders_table::Migration),
             Box::new(m20220101_000018_create_order_items_table::Migration),
+            Box::new(m20220101_000019_add_barcode_to_products::Migration),
         ]
     }
 }

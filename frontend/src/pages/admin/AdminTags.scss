@@ -1,0 +1,25 @@
+@use "@/base.scss" as *;
+
+.admin-tags {
+  @extend .page-panel;
+
+  &__header { @extend .page-header; }
+  &__title { @extend .page-title; }
+
+  &__error { @extend .error-msg; }
+  &__status { @extend .status-msg; }
+
+  &__create { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; max-width: 28rem; }
+
+  &__input {
+    flex: 1; padding: 0.6rem 0.85rem;
+    @extend .field-input;
+  }
+
+  &__btn { @extend .btn-primary; background: var(--coralie-spicy); color: var(--coralie-white); border: none; white-space: nowrap; }
+
+  &__table-wrap { @extend .table-wrap; }
+  &__table { @extend .data-table; }
+
+  &__delete { @extend .btn-danger; }
+}

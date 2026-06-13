@@ -1,0 +1,44 @@
+@use "@/base.scss" as *;
+
+.admin-wh {
+  @extend .page-panel;
+
+  &__header { @extend .page-header; }
+  &__title { @extend .page-title; }
+
+  &__tabs { display: flex; gap: 0.25rem; background: var(--coralie-blush); border-radius: var(--radius); padding: 0.25rem; }
+
+  &__tab {
+    padding: 0.4rem 1rem; border: none; border-radius: calc(var(--radius-sm));
+    background: transparent; color: var(--coralie-mid);
+    font-family: var(--coralie-contrast-font); font-size: 0.85rem;
+    font-weight: 600; cursor: pointer;
+
+    &--active { background: var(--coralie-white); color: var(--coralie-spicy); box-shadow: var(--shadow); }
+  }
+
+  &__error { @extend .error-msg; }
+  &__status { @extend .status-msg; }
+
+  &__form { display: flex; gap: 0.5rem; margin-bottom: 1rem; max-width: 32rem; flex-wrap: wrap; }
+
+  &__input {
+    flex: 1; min-width: 10rem; padding: 0.6rem 0.85rem;
+    @extend .field-input;
+  }
+
+  &__btn { @extend .btn-primary; background: var(--coralie-spicy); color: var(--coralie-white); border: none; white-space: nowrap; }
+  &__cancel { @extend .btn-secondary; }
+
+  &__filter { margin-bottom: 1rem;
+    select { @extend .field-input; }
+  }
+
+  &__table-wrap { @extend .table-wrap; }
+  &__table { @extend .data-table; }
+  &__actions-cell { @extend .cell-actions; }
+
+  &__delete {
+    &:hover { border-color: var(--coralie-rose) !important; color: var(--coralie-hot) !important; }
+  }
+}

@@ -48,3 +48,162 @@
   font-weight: 600;
   text-decoration: none;
 }
+
+// ─── Admin page layout ─────────────────────────────────
+
+.page-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.page-title {
+  font-family: var(--coralie-contrast-font);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--coralie-dark);
+}
+
+// ─── Messages ──────────────────────────────────────────
+
+.error-msg {
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-sm);
+  background: var(--coralie-petal);
+  border: 1px solid var(--coralie-rose);
+  color: var(--coralie-hot);
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.status-msg {
+  font-family: var(--coralie-main-font);
+  color: var(--coralie-mid);
+  font-size: 0.9rem;
+}
+
+// ─── Forms ─────────────────────────────────────────────
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex: 1;
+
+  > span {
+    font-family: var(--coralie-contrast-font);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--coralie-mid);
+  }
+}
+
+.field-input {
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--coralie-light);
+  border-radius: var(--radius-sm);
+  background: var(--coralie-white);
+  color: var(--coralie-dark);
+  font-family: var(--coralie-main-font);
+  font-size: 0.9rem;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: var(--coralie-hot);
+    box-shadow: 0 0 0 3px var(--coralie-blush);
+  }
+}
+
+// ─── Buttons ───────────────────────────────────────────
+
+.btn-secondary {
+  @extend .btn-primary;
+  background: transparent;
+  color: var(--coralie-mid);
+  border: 1px solid var(--coralie-light);
+}
+
+.btn-danger {
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--coralie-rose);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--coralie-hot);
+  font-size: 0.8rem;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--coralie-petal);
+  }
+}
+
+// ─── Tables ────────────────────────────────────────────
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--coralie-main-font);
+  font-size: 0.85rem;
+  background: var(--coralie-white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+
+  th, td {
+    text-align: left;
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid var(--coralie-blush);
+  }
+
+  th {
+    font-family: var(--coralie-contrast-font);
+    font-weight: 700;
+    color: var(--coralie-mid);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid var(--coralie-rose);
+  }
+
+  td {
+    color: var(--coralie-dark);
+  }
+
+  tbody tr:hover {
+    background: var(--coralie-petal);
+  }
+}
+
+.cell-actions {
+  display: flex;
+  gap: 0.5rem;
+
+  button {
+    padding: 0.3rem 0.6rem;
+    border: 1px solid var(--coralie-light);
+    border-radius: var(--radius-sm);
+    background: var(--coralie-white);
+    color: var(--coralie-dark);
+    font-size: 0.8rem;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--coralie-blush);
+    }
+  }
+}

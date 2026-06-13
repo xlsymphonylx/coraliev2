@@ -1,0 +1,119 @@
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import client from "@/api/client";
+import "@/pages/admin/AdminCategories.scss";
+import "@/pages/admin/AdminCategories_responsive.scss";
+
+type Category = { id: number; name: string; slug: string; description: string | null; parent_id: number | null };
+
+function AdminCategories() {
+  const [params, setParams] = useSearchParams();
+  const action = params.get("action") || "list";
+  const editId = params.get("id");
+
+  const [items, setItems] = useState<Category[]>([]);
+  const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
+  const [desc, setDesc] = useState("");
+  const [parentId, setParentId] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetch = async () => {
+    setLoading(true);
+    try { const { data } = await client.get("/categories"); setItems(data.data ?? []); }
+    catch { setError("Error al cargar"); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { fetch(); }, []);
+  useEffect(() => {
+    if (action === "editar" && editId) {
+      const item = items.find((c) => c.id === Number(editId));
+      if (item) { setName(item.name); setSlug(item.slug); setDesc(item.description ?? ""); setParentId(item.parent_id?.toString() ?? ""); }
+    } else { setName(""); setSlug(""); setDesc(""); setParentId(""); }
+  }, [action, editId, items]);
+
+  const goList = () => setParams({});
+  const goEdit = (id: number) => setParams({ action: "editar", id: String(id) });
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault(); setSaving(true); setError(null);
+    const payload = { name, slug: slug || undefined, description: desc || null, parent_id: parentId ? Number(parentId) : null };
+    try {
+      if (action === "crear") await client.post("/categories", payload);
+      else await client.patch(`/categories/${editId}`, payload);
+      goList(); fetch();
+    } catch (err: unknown) {
+      setError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Error al guardar");
+    } finally { setSaving(false); }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("¿Eliminar esta categoría?")) return;
+    try { await client.delete(`/categories/${id}`); fetch(); }
+    catch { setError("Error al eliminar"); }
+  };
+
+  if (action === "crear" || action === "editar") {
+    return (
+      <div className="admin-cat">
+        <div className="admin-cat__header">
+          <h1 className="admin-cat__title">{action === "crear" ? "Nueva categoría" : "Editar categoría"}</h1>
+          <button className="admin-cat__back" onClick={goList}>Volver</button>
+        </div>
+        {error && <p className="admin-cat__error">{error}</p>}
+        <form className="admin-cat__form" onSubmit={handleSave}>
+          <label className="admin-cat__field"><span>Nombre *</span><input value={name} onChange={(e) => setName(e.target.value)} required /></label>
+          <label className="admin-cat__field"><span>Slug</span><input value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="Auto-generado si se deja vacío" /></label>
+          <label className="admin-cat__field"><span>Descripción</span><textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={2} /></label>
+          <label className="admin-cat__field">
+            <span>Categoría padre</span>
+            <select value={parentId} onChange={(e) => setParentId(e.target.value)}>
+              <option value="">Ninguna (raíz)</option>
+              {items.filter((c) => c.id !== Number(editId)).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </label>
+          <div className="admin-cat__actions">
+            <button type="submit" className="admin-cat__save" disabled={saving}>{saving ? "Guardando..." : "Guardar"}</button>
+            <button type="button" className="admin-cat__cancel" onClick={goList}>Cancelar</button>
+          </div>
+        </form>
+      </div>
+    );
+  }
+
+  return (
+    <div className="admin-cat">
+      <div className="admin-cat__header">
+        <h1 className="admin-cat__title">Categorías</h1>
+        <button className="admin-cat__create" onClick={() => setParams({ action: "crear" })}>+ Nueva</button>
+      </div>
+      {error && <p className="admin-cat__error">{error}</p>}
+      {loading ? <p className="admin-cat__status">Cargando...</p>
+      : items.length === 0 ? <p className="admin-cat__status">Sin categorías</p>
+      : (
+        <div className="admin-cat__table-wrap">
+          <table className="admin-cat__table">
+            <thead><tr><th>ID</th><th>Nombre</th><th>Slug</th><th>Padre</th><th>Acciones</th></tr></thead>
+            <tbody>
+              {items.map((c) => (
+                <tr key={c.id}>
+                  <td>{c.id}</td><td>{c.name}</td><td>{c.slug}</td>
+                  <td>{items.find((p) => p.id === c.parent_id)?.name ?? "—"}</td>
+                  <td className="admin-cat__actions-cell">
+                    <button onClick={() => goEdit(c.id)}>Editar</button>
+                    <button className="admin-cat__delete" onClick={() => handleDelete(c.id)}>Eliminar</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default AdminCategories;

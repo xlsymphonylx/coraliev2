@@ -13,6 +13,7 @@ pub struct Model {
     #[sea_orm(column_name = "type")]
     pub product_type: String,
     pub category_id: Option<i32>,
+    pub barcode: Option<String>,
     pub created_at: DateTimeUtc,
     pub updated_at: DateTimeUtc,
     pub deleted_at: Option<DateTimeUtc>,
