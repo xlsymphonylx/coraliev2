@@ -2,10 +2,6 @@
 
 .dt-wrap {
   overflow-x: auto;
-
-  @media (max-width: 768px) {
-    display: none;
-  }
 }
 
 .dt {
@@ -44,10 +40,6 @@
   display: none;
   flex-direction: column;
   gap: 0.75rem;
-
-  @media (max-width: 768px) {
-    display: flex;
-  }
 }
 
 .dt-card {

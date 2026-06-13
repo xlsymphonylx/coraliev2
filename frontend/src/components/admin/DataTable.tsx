@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import "@/components/admin/DataTable.scss";
+import "@/components/admin/DataTable_responsive.scss";
 
 export type Column<T> = {
   header: string;

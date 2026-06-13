@@ -4,6 +4,7 @@ import { Menu, X } from "lucide-react";
 import { checkToken, getSessionUsername } from "@/api/client";
 import AdminSidebar from "./AdminSidebar";
 import "@/components/layout/styles/AdminLayout.scss";
+import "@/components/layout/styles/AdminLayout_responsive.scss";
 
 type AdminLayoutProps = {
   children: ReactNode;

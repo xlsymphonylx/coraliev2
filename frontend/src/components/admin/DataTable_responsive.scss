@@ -1,1 +1,11 @@
-/* Responsive is built into DataTable.scss via media queries */
+@use "@/base.scss" as *;
+
+@media (max-width: 768px) {
+  .dt-wrap {
+    display: none;
+  }
+
+  .dt-cards {
+    display: flex;
+  }
+}

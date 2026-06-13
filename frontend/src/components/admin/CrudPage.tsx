@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import "@/components/admin/CrudPage.scss";
+import "@/components/admin/CrudPage_responsive.scss";
 
 type CrudTab = { key: string; label: string; active: boolean; onClick: () => void };
 

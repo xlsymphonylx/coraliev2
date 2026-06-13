@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { clearToken } from "@/api/client";
 import UserDropdown from "./UserDropdown";
 import "@/components/layout/styles/Navbar.scss";
+import "@/components/layout/styles/Navbar_responsive.scss";
 
 type NavbarProps = {
   isAuthenticated: boolean;
