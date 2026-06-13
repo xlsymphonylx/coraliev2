@@ -13,8 +13,10 @@ use crate::{
 
 pub async fn list(
     State(state): State<AppState>,
+    me: AuthUser,
 ) -> Result<Json<ApiResponse<Vec<AddressResponse>>>, (StatusCode, Json<ApiResponse<()>>)> {
     let addresses = address::Entity::find()
+        .filter(address::Column::UserId.eq(Some(me.user_id)))
         .filter(address::Column::DeletedAt.is_null())
         .all(&state.db)
         .await
@@ -67,10 +69,12 @@ pub async fn create(
 
 pub async fn update(
     State(state): State<AppState>,
+    me: AuthUser,
     Path(id): Path<i32>,
     Json(body): Json<UpdateAddressRequest>,
 ) -> Result<Json<ApiResponse<AddressResponse>>, (StatusCode, Json<ApiResponse<()>>)> {
     let a = address::Entity::find_by_id(id)
+        .filter(address::Column::UserId.eq(Some(me.user_id)))
         .filter(address::Column::DeletedAt.is_null())
         .one(&state.db)
         .await
@@ -103,9 +107,11 @@ pub async fn update(
 
 pub async fn delete(
     State(state): State<AppState>,
+    me: AuthUser,
     Path(id): Path<i32>,
 ) -> Result<Json<ApiResponse<()>>, (StatusCode, Json<ApiResponse<()>>)> {
     let a = address::Entity::find_by_id(id)
+        .filter(address::Column::UserId.eq(Some(me.user_id)))
         .filter(address::Column::DeletedAt.is_null())
         .one(&state.db)
         .await

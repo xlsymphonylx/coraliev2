@@ -1,0 +1,16 @@
+/home/symphony/Projects/CoralieV2/backend/migration/target/debug/deps/sea_orm_migration-07a69ea47c6f2396.d: /home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/lib.rs /home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/cli.rs /home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/connection.rs /home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/manager.rs /home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/migrator.rs /home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/prelude.rs /home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/schema.rs /home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/seaql_migrations.rs /home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/util.rs
+
+/home/symphony/Projects/CoralieV2/backend/migration/target/debug/deps/libsea_orm_migration-07a69ea47c6f2396.rmeta: /home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/lib.rs /home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/cli.rs /home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/connection.rs /home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/manager.rs /home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/migrator.rs /home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/prelude.rs /home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/schema.rs /home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/seaql_migrations.rs /home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/util.rs
+
+/home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/lib.rs:
+/home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/cli.rs:
+/home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/connection.rs:
+/home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/manager.rs:
+/home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/migrator.rs:
+/home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/prelude.rs:
+/home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/schema.rs:
+/home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/seaql_migrations.rs:
+/home/symphony/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-orm-migration-1.1.20/src/util.rs:
+
+# env-dep:CARGO_PKG_NAME=sea-orm-migration
+# env-dep:CARGO_PKG_VERSION=1.1.20

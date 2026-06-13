@@ -6,7 +6,7 @@ use axum::{Json, extract::State};
 pub fn router() -> Router<AppState> {
     Router::new()
         .route("/", get(
-            |s: State<AppState>, _u: AuthUser| async move { addresses::list(s).await },
+            |s: State<AppState>, me: AuthUser| async move { addresses::list(s, me).await },
         ))
         .route("/", post(
             |State(state): State<AppState>, me: AuthUser, Json(body): Json<crate::dto::address::CreateAddressRequest>| async move {
@@ -14,11 +14,11 @@ pub fn router() -> Router<AppState> {
             },
         ))
         .route("/{id}", patch(
-            |s: State<AppState>, p: axum::extract::Path<i32>, _u: AuthUser, b: axum::Json<crate::dto::address::UpdateAddressRequest>| async move {
-                addresses::update(s, p, b).await
+            |s: State<AppState>, me: AuthUser, p: axum::extract::Path<i32>, b: axum::Json<crate::dto::address::UpdateAddressRequest>| async move {
+                addresses::update(s, me, p, b).await
             },
         ))
         .route("/{id}", delete(
-            |s: State<AppState>, p: axum::extract::Path<i32>, _u: AuthUser| async move { addresses::delete(s, p).await },
+            |s: State<AppState>, me: AuthUser, p: axum::extract::Path<i32>| async move { addresses::delete(s, me, p).await },
         ))
 }
