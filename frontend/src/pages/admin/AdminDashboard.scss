@@ -1,0 +1,94 @@
+@use "@/base.scss" as *;
+
+.admin {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+
+  &__header {
+    margin-bottom: 2rem;
+  }
+
+  &__title {
+    font-family: var(--coralie-contrast-font);
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--coralie-dark);
+  }
+
+  &__subtitle {
+    font-family: var(--coralie-main-font);
+    font-size: 0.95rem;
+    color: var(--coralie-mid);
+    margin-top: 0.25rem;
+  }
+
+  &__section {
+    background: var(--coralie-white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+  }
+
+  &__section-title {
+    font-family: var(--coralie-contrast-font);
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--coralie-dark);
+    margin-bottom: 1rem;
+  }
+
+  &__status {
+    font-family: var(--coralie-main-font);
+    color: var(--coralie-mid);
+    font-size: 0.9rem;
+  }
+
+  &__error {
+    padding: 0.65rem 0.85rem;
+    border-radius: var(--radius-sm);
+    background: var(--coralie-petal);
+    border: 1px solid var(--coralie-rose);
+    color: var(--coralie-hot);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  &__table-wrapper {
+    overflow-x: auto;
+  }
+
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--coralie-main-font);
+    font-size: 0.9rem;
+
+    th,
+    td {
+      text-align: left;
+      padding: 0.65rem 0.85rem;
+      border-bottom: 1px solid var(--coralie-blush);
+    }
+
+    th {
+      font-family: var(--coralie-contrast-font);
+      font-weight: 700;
+      color: var(--coralie-mid);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 2px solid var(--coralie-rose);
+    }
+
+    td {
+      color: var(--coralie-dark);
+    }
+
+    tbody tr:hover {
+      background: var(--coralie-petal);
+    }
+  }
+}

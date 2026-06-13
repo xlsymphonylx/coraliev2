@@ -18,16 +18,30 @@ function parseSessionToken() {
   }
 
   const token = authorizationHeader.slice('Bearer '.length)
-  const [scope, role, ...usernameParts] = token.split('-')
 
-  if (scope !== 'mvp' || !role || usernameParts.length === 0) {
+  try {
+    // Decode JWT payload (second base64 segment) to extract claims
+    const payloadBase64 = token.split('.')[1]
+    if (!payloadBase64) return null
+
+    const json = atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'))
+    const claims = JSON.parse(json)
+
+    if (!claims.sub || !claims.username || !Array.isArray(claims.roles)) {
+      return null
+    }
+
+    const isAdmin = claims.roles.some(
+      (r: string) => r.toLowerCase() === 'admin',
+    )
+
+    return {
+      token,
+      isAdmin,
+      username: claims.username,
+    }
+  } catch {
     return null
-  }
-
-  return {
-    token,
-    isAdmin: role === 'admin',
-    username: usernameParts.join(' '),
   }
 }
 
