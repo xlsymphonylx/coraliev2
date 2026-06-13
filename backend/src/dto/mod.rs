@@ -1,11 +1,13 @@
 pub mod address;
 pub mod auth;
+pub mod bundle_item;
 pub mod category;
 pub mod common;
 pub mod inventory;
 pub mod order;
 pub mod product;
 pub mod product_discount;
+pub mod product_image;
 pub mod role;
 pub mod storage_unit;
 pub mod tag;

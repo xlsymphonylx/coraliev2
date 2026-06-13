@@ -1,10 +1,12 @@
 pub mod addresses;
 pub mod auth;
+pub mod bundle_items;
 pub mod categories;
 pub mod health;
 pub mod inventory;
 pub mod orders;
 pub mod product_discounts;
+pub mod product_images;
 pub mod products;
 pub mod roles;
 pub mod storage_units;
@@ -31,6 +33,8 @@ pub fn router() -> Router<AppState> {
         .nest("/inventory", inventory::router())
         .nest("/warehouses", warehouses::router())
         .nest("/storage-units", storage_units::router())
+        .nest("/product-images", product_images::router())
         .nest("/product-discounts", product_discounts::router())
         .nest("/volume-discounts", volume_discounts::router())
+        .nest("/bundle-items", bundle_items::router())
 }

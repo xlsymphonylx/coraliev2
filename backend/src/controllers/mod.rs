@@ -1,10 +1,12 @@
 pub mod addresses;
 pub mod auth;
+pub mod bundle_items;
 pub mod categories;
 pub mod health;
 pub mod inventory;
 pub mod orders;
 pub mod product_discounts;
+pub mod product_images;
 pub mod products;
 pub mod roles;
 pub mod storage_units;
