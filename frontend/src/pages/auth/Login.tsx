@@ -22,6 +22,7 @@ function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [rawError, setRawError] = useState("");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -31,10 +32,12 @@ function Login() {
 
     if (!username.trim() || !password.trim()) {
       setError("Todos los campos son obligatorios");
+      setRawError("validation: campos vacíos");
       return;
     }
 
     setLoading(true);
+    setError(null);
 
     try {
       const { data } = await client.post<LoginResponse>("/auth/login", {
@@ -46,12 +49,16 @@ function Login() {
         setToken(data.data.token);
         navigate("/", { replace: true });
       } else {
-        setError(JSON.stringify(data, null, 2) || "Error al iniciar sesión");
+        const detail = JSON.stringify(data, null, 2);
+        setError("No se pudo iniciar sesión");
+        setRawError(detail);
       }
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: unknown }; message?: string; code?: string };
       const raw = axiosErr.response?.data;
-      setError(raw ? JSON.stringify(raw, null, 2) : JSON.stringify({ message: axiosErr.message, code: axiosErr.code }, null, 2));
+      const detail = raw ? JSON.stringify(raw, null, 2) : JSON.stringify({ message: axiosErr.message, code: axiosErr.code }, null, 2);
+      setError("No se pudo iniciar sesión");
+      setRawError(detail);
     } finally {
       setLoading(false);
     }
@@ -71,23 +78,25 @@ function Login() {
         <form className="auth-page__form" onSubmit={handleSubmit}>
           {error && (
             <div className="auth-page__error-wrap">
-              <p className="auth-page__error">{error}</p>
-              <button type="button" className="auth-page__copy" onClick={() => {
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
-                navigator.clipboard?.writeText(error).catch(() => {
-                  const ta = document.createElement('textarea');
-                  ta.value = error;
-                  ta.style.position = 'fixed';
-                  ta.style.opacity = '0';
-                  document.body.appendChild(ta);
-                  ta.select();
-                  document.execCommand('copy');
-                  document.body.removeChild(ta);
-                });
-              }}>
-                {copied ? "¡Copiado!" : "Copiar mensaje"}
-              </button>
+              <p className="auth-page__error-title">{error}</p>
+              <div className="auth-page__copy-row">
+                <button type="button" className="auth-page__copy" onClick={() => {
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                  navigator.clipboard?.writeText(rawError).catch(() => {
+                    const ta = document.createElement('textarea');
+                    ta.value = rawError;
+                    ta.style.position = 'fixed';
+                    ta.style.opacity = '0';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                  });
+                }}>
+                  {copied ? "¡Copiado!" : "Copiar para soporte técnico"}
+                </button>
+              </div>
             </div>
           )}
 
