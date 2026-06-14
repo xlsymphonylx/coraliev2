@@ -94,7 +94,7 @@ function AdminOrders() {
               <div key={i} className="crud-dual__form-row">
                 <select className="field-input" value={f.product_id} onChange={(e) => updateFormItem(i, "product_id", e.target.value)} required style={{ flex: 1, minWidth: "12rem" }}>
                   <option value="">Seleccionar producto...</option>
-                  {products.map((p) => <option key={p.id} value={p.id}>{p.name} — ${p.price}</option>)}
+                  {products.map((p) => <option key={p.id} value={p.id}>{p.name} — Q{p.price}</option>)}
                 </select>
                 <input className="field-input" type="number" min={1} value={f.quantity} onChange={(e) => updateFormItem(i, "quantity", e.target.value)} required style={{ width: "5rem" }} />
                 {formItems.length > 1 && (
@@ -126,7 +126,7 @@ function AdminOrders() {
                 <tr key={o.id} className="admin-orders__row" onClick={() => setExpanded(expanded === o.id ? null : o.id)}>
                   <td>{o.id}</td>
                   <td>{o.anon_name ?? `Usuario #${o.user_id}`}</td>
-                  <td>${o.total}</td>
+                  <td>Q{o.total}</td>
                   <td>
                     <select
                       className={`admin-orders__status admin-orders__status--${o.status}`}

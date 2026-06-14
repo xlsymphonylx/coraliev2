@@ -1,0 +1,19 @@
+@use "@/base.scss" as *;
+
+@media (max-width: 768px) {
+  .dashboard {
+    &__kpis {
+      grid-template-columns: 1fr;
+    }
+
+    &__order-card-info {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.25rem;
+    }
+
+    &__order-date {
+      margin-left: 0;
+    }
+  }
+}

@@ -1,36 +1,109 @@
 @use "@/base.scss" as *;
 
-.admin {
-  @extend .page-panel;
-  padding: 2rem;
-
-  &__header { margin-bottom: 2rem; }
-
-  &__title {
-    font-family: var(--coralie-contrast-font);
-    font-size: 1.75rem; font-weight: 700; color: var(--coralie-dark);
+.dashboard {
+  &__kpis {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
   }
 
-  &__subtitle {
+  &__kpi {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 1rem 1.15rem;
+    background: var(--coralie-white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+
+  &__kpi-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__kpi-body {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__kpi-value {
+    font-family: var(--coralie-contrast-font);
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--coralie-dark);
+    line-height: 1.2;
+  }
+
+  &__kpi-label {
     font-family: var(--coralie-main-font);
-    font-size: 0.95rem; color: var(--coralie-mid); margin-top: 0.25rem;
+    font-size: 0.8rem;
+    color: var(--coralie-mid);
   }
 
-  &__section {
-    background: var(--coralie-white); border-radius: var(--radius-lg);
-    box-shadow: var(--shadow); padding: 1.5rem;
+  &__order-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
-  &__section-title {
+  &__order-card {
+    padding: 0.7rem 1rem;
+    background: var(--coralie-white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: box-shadow 0.15s;
+
+    &:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    }
+  }
+
+  &__order-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+
+    strong {
+      font-family: var(--coralie-contrast-font);
+      font-size: 0.9rem;
+      color: var(--coralie-dark);
+    }
+  }
+
+  &__order-status {
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius-sm);
     font-family: var(--coralie-contrast-font);
-    font-size: 1.125rem; font-weight: 600; color: var(--coralie-dark);
-    margin-bottom: 1rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+
+    &--pending { background: #fff3cd; color: #856404; }
+    &--confirmed { background: #cce5ff; color: #004085; }
+    &--processing { background: #d4edda; color: #155724; }
   }
 
-  &__status { @extend .status-msg; }
+  &__order-card-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-family: var(--coralie-main-font);
+    font-size: 0.8rem;
+    color: var(--coralie-mid);
+    flex-wrap: wrap;
+  }
 
-  &__error { @extend .error-msg; }
-
-  &__table-wrapper { @extend .table-wrap; }
-  &__table { @extend .data-table; font-size: 0.9rem; }
+  &__order-date {
+    color: var(--coralie-light);
+    margin-left: auto;
+  }
 }

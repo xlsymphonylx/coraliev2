@@ -291,7 +291,7 @@ function AdminProducts() {
                   <td>{p.id}</td>
                   <td>{p.name}</td>
                   <td className="admin-products__barcode">{p.barcode ?? "—"}</td>
-                  <td>${p.price}</td>
+                  <td>Q{p.price}</td>
                   <td>{p.product_type}</td>
                   <td>{p.category?.name ?? "—"}</td>
                   <td className="cell-actions">
