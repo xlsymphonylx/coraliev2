@@ -1,4 +1,4 @@
-use axum::{Router, routing::get};
+use axum::{Router, routing::{get, post}};
 
 use crate::{controllers::users, state::AppState, utils::auth::RequireAdmin};
 
@@ -9,6 +9,16 @@ pub fn router() -> Router<AppState> {
             get({
                 |state: axum::extract::State<AppState>, _admin: RequireAdmin| async move {
                     users::list(state).await
+                }
+            }),
+        )
+        .route(
+            "/",
+            post({
+                |state: axum::extract::State<AppState>,
+                 _admin: RequireAdmin,
+                 body: axum::Json<crate::dto::user::CreateUserRequest>| async move {
+                    users::create(state, body).await
                 }
             }),
         )

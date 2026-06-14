@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { HomeIcon, LogOut, Menu, MessageCircle, Package, ShieldCheck, X } from "lucide-react";
+import { HomeIcon, LogIn, LogOut, Menu, MessageCircle, Package, ShieldCheck, UserPlus, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { clearToken } from "@/api/client";
 import UserDropdown from "./UserDropdown";
@@ -47,18 +47,22 @@ function Navbar({ isAuthenticated, isAdmin, username }: NavbarProps) {
         </Link>
         {!isAuthenticated ? (
           <div className="navbar__mobile-auth">
-            <Link to="/login" className="navbar__action" onClick={() => setMenuOpen(false)}>Login</Link>
-            <Link to="/signup" className="navbar__action" onClick={() => setMenuOpen(false)}>Signup</Link>
+            <Link to="/login" className="navbar__link" onClick={() => setMenuOpen(false)}>
+              <LogIn /> Login
+            </Link>
+            <Link to="/signup" className="navbar__link" onClick={() => setMenuOpen(false)}>
+              <UserPlus /> Signup
+            </Link>
           </div>
         ) : (
           <div className="navbar__mobile-auth">
             {isAdmin && (
-              <Link to="/admin" className="navbar__action" onClick={() => setMenuOpen(false)}>
-                <ShieldCheck size={16} /> Admin
+              <Link to="/admin" className="navbar__link" onClick={() => setMenuOpen(false)}>
+                <ShieldCheck /> Admin
               </Link>
             )}
-            <button className="navbar__action navbar__action--logout" onClick={handleLogout}>
-              <LogOut size={16} /> Cerrar sesión
+            <button className="navbar__link" onClick={handleLogout}>
+              <LogOut /> Cerrar sesión
             </button>
           </div>
         )}

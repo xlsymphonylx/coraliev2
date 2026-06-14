@@ -1,0 +1,28 @@
+@use "@/base.scss" as *;
+
+.crud-dual {
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.25rem;
+    background: var(--coralie-white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+
+  &__form-title {
+    font-family: var(--coralie-contrast-font);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--coralie-dark);
+    margin: 0;
+  }
+
+  &__form-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+}

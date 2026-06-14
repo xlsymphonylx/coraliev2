@@ -13,6 +13,14 @@ pub struct UserResponse {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct CreateUserRequest {
+    pub username: String,
+    pub email: String,
+    pub password: String,
+    pub role_ids: Vec<i32>,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct UpdateUserRequest {
     pub username: Option<String>,
     pub email: Option<String>,

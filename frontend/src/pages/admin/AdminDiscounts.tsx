@@ -1,20 +1,23 @@
 import { useEffect, useState } from "react";
 import client from "@/api/client";
-import CrudPage from "@/components/admin/CrudPage";
+import CrudDual from "@/components/admin/CrudDual";
 import DataTable from "@/components/admin/DataTable";
 import type { Column } from "@/components/admin/DataTable";
 import "@/pages/admin/AdminDiscounts.scss";
 
 type ProdDiscount = { id: number; product_id: number; discount_percent: string; active: boolean; starts_at: string | null; ends_at: string | null };
 type VolDiscount = { id: number; product_id: number | null; min_quantity: number; discount_percent: string; description: string | null };
+type Product = { id: number; name: string; barcode: string | null };
 
 function AdminDiscounts() {
   const [tab, setTab] = useState<"product" | "volume">("product");
   const [pd, setPd] = useState<ProdDiscount[]>([]);
   const [vd, setVd] = useState<VolDiscount[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
   const [formProductId, setFormProductId] = useState("");
   const [formPercent, setFormPercent] = useState("");
@@ -27,12 +30,12 @@ function AdminDiscounts() {
   const fetch = async () => {
     setLoading(true);
     try {
-      const [pr, vr] = await Promise.all([
-        client.get("/product-discounts"),
-        client.get("/volume-discounts"),
+      const [pr, vr, prods] = await Promise.all([
+        client.get("/product-discounts"), client.get("/volume-discounts"), client.get("/products?limit=500"),
       ]);
       setPd(pr.data.data ?? []);
       setVd(vr.data.data ?? []);
+      setProducts(prods.data.data ?? []);
     } catch { setError("Error al cargar"); }
     finally { setLoading(false); }
   };
@@ -75,11 +78,11 @@ function AdminDiscounts() {
     } catch { setError("Error al eliminar"); }
   };
 
-
+  const prodName = (id: number) => products.find((p) => p.id === id)?.name ?? `#${id}`;
 
   const productColumns: Column<ProdDiscount>[] = [
     { header: "ID", render: (d) => d.id },
-    { header: "Producto", render: (d) => `#${d.product_id}` },
+    { header: "Producto", render: (d) => prodName(d.product_id) },
     { header: "%", render: (d) => `${d.discount_percent}%` },
     { header: "Activo", render: (d) => d.active ? "Sí" : "No", hideOnMobile: true },
     { header: "Vigencia", render: (d) => d.starts_at ? `${new Date(d.starts_at).toLocaleDateString()} - ${d.ends_at ? new Date(d.ends_at).toLocaleDateString() : "∞"}` : "Siempre", hideOnMobile: true },
@@ -88,7 +91,7 @@ function AdminDiscounts() {
 
   const volumeColumns: Column<VolDiscount>[] = [
     { header: "ID", render: (d) => d.id },
-    { header: "Producto", render: (d) => d.product_id ? `#${d.product_id}` : "Todos" },
+    { header: "Producto", render: (d) => d.product_id ? prodName(d.product_id) : "Todos" },
     { header: "Mín", render: (d) => d.min_quantity },
     { header: "%", render: (d) => `${d.discount_percent}%` },
     { header: "Descripción", render: (d) => d.description ?? "—", hideOnMobile: true },
@@ -96,45 +99,64 @@ function AdminDiscounts() {
   ];
 
   return (
-    <CrudPage
+    <CrudDual
       title="Descuentos"
+      search={{ placeholder: "Buscar por producto, % o descripción...", value: search, onChange: setSearch }}
       tabs={[
         { key: "product", label: "Por producto", active: tab === "product", onClick: () => setTab("product") },
         { key: "volume", label: "Por volumen", active: tab === "volume", onClick: () => setTab("volume") },
       ]}
-      form={
-        <>{tab === "product" ? (
-          <>
-            <input className="field-input" type="number" placeholder="Producto ID *" value={formProductId} onChange={(e) => setFormProductId(e.target.value)} required style={{ flex: 1, minWidth: "8rem" }} />
+      error={error}
+    >
+      {tab === "product" && (
+        <>
+          <CrudDual.FormCard title="Nuevo descuento por producto" onSubmit={handleCreate} saving={saving}>
+            <select className="field-input" value={formProductId} onChange={(e) => setFormProductId(e.target.value)} required style={{ flex: 1, minWidth: "10rem" }}>
+              <option value="">Seleccionar producto...</option>
+              {products.map((p) => <option key={p.id} value={p.id}>{p.name}{p.barcode ? ` (${p.barcode})` : ""}</option>)}
+            </select>
             <input className="field-input" type="number" step="0.01" placeholder="% descuento *" value={formPercent} onChange={(e) => setFormPercent(e.target.value)} required style={{ flex: 1, minWidth: "8rem" }} />
             <select className="field-input" value={formActive} onChange={(e) => setFormActive(e.target.value)} style={{ flex: 1, minWidth: "8rem" }}>
               <option value="true">Activo</option><option value="false">Inactivo</option>
             </select>
             <input className="field-input" type="date" value={formStart} onChange={(e) => setFormStart(e.target.value)} style={{ flex: 1, minWidth: "8rem" }} />
             <input className="field-input" type="date" value={formEnd} onChange={(e) => setFormEnd(e.target.value)} style={{ flex: 1, minWidth: "8rem" }} />
-          </>
-        ) : (
-          <>
-            <input className="field-input" type="number" placeholder="Producto ID (opcional)" value={formProductId} onChange={(e) => setFormProductId(e.target.value)} style={{ flex: 1, minWidth: "8rem" }} />
+            <button type="submit" className="crud__action" disabled={saving}>{saving ? "..." : "+ Crear"}</button>
+          </CrudDual.FormCard>
+
+          <DataTable
+            columns={productColumns}
+            data={pd.filter((d) => !search || prodName(d.product_id).toLowerCase().includes(search.toLowerCase()) || d.discount_percent.includes(search))}
+            keyExtractor={(d: any) => d.id}
+            loading={loading}
+            emptyMessage="Sin descuentos"
+          />
+        </>
+      )}
+
+      {tab === "volume" && (
+        <>
+          <CrudDual.FormCard title="Nuevo descuento por volumen" onSubmit={handleCreate} saving={saving}>
+            <select className="field-input" value={formProductId} onChange={(e) => setFormProductId(e.target.value)} style={{ flex: 1, minWidth: "10rem" }}>
+              <option value="">Todos los productos</option>
+              {products.map((p) => <option key={p.id} value={p.id}>{p.name}{p.barcode ? ` (${p.barcode})` : ""}</option>)}
+            </select>
             <input className="field-input" type="number" placeholder="Cantidad mínima *" value={formMinQty} onChange={(e) => setFormMinQty(e.target.value)} required style={{ flex: 1, minWidth: "8rem" }} />
             <input className="field-input" type="number" step="0.01" placeholder="% descuento *" value={formPercent} onChange={(e) => setFormPercent(e.target.value)} required style={{ flex: 1, minWidth: "8rem" }} />
             <input className="field-input" type="text" placeholder="Descripción" value={formDesc} onChange={(e) => setFormDesc(e.target.value)} style={{ flex: 1, minWidth: "8rem" }} />
-          </>
-        )}
-          <button className="crud__action" type="submit" disabled={saving}>{saving ? "..." : "+ Crear"}</button>
-        </>
-      }
-    >
-      {error && <p className="error-msg">{error}</p>}
+            <button type="submit" className="crud__action" disabled={saving}>{saving ? "..." : "+ Crear"}</button>
+          </CrudDual.FormCard>
 
-      <DataTable
-        columns={tab === "product" ? productColumns : volumeColumns}
-        data={tab === "product" ? pd : vd}
-        keyExtractor={(item: any) => item.id}
-        loading={loading}
-        emptyMessage={tab === "product" ? "Sin descuentos" : "Sin descuentos por volumen"}
-      />
-    </CrudPage>
+          <DataTable
+            columns={volumeColumns}
+            data={vd.filter((d) => !search || prodName(d.product_id ?? 0).toLowerCase().includes(search.toLowerCase()) || d.discount_percent.includes(search) || d.description?.includes(search))}
+            keyExtractor={(d: any) => d.id}
+            loading={loading}
+            emptyMessage="Sin descuentos por volumen"
+          />
+        </>
+      )}
+    </CrudDual>
   );
 }
 

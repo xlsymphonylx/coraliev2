@@ -1,24 +1,11 @@
 @use "@/base.scss" as *;
 
 .admin-orders {
-  @extend .page-panel;
-
-  &__header { @extend .page-header; }
-  &__title { @extend .page-title; }
-  &__refresh { @extend .btn-secondary; }
-
-  &__error { @extend .error-msg; }
-  &__status { @extend .status-msg; }
-
-  &__table-wrap { @extend .table-wrap; }
-  &__table { @extend .data-table; }
-
-  &__row { cursor: pointer;
-    &:hover { background: var(--coralie-petal); }
-  }
+  &__row { cursor: pointer; }
 
   &__detail td { background: var(--coralie-petal); padding: 0.75rem 1rem; }
-  &__detail-inner { font-size: 0.85rem; color: var(--coralie-dark);
+  &__detail-inner {
+    font-size: 0.85rem; color: var(--coralie-dark);
     ul { margin: 0.25rem 0 0 1.25rem; }
     p { margin-top: 0.5rem; }
   }

@@ -15,12 +15,28 @@ use crate::{
     },
     models::{inventory, order, order_item, order_item::Entity as OrderItem, product},
     state::AppState,
-    utils::auth::AuthUser,
+    utils::auth::{AuthUser, RequireAdmin},
 };
 
 pub async fn create(
     State(state): State<AppState>,
     me: AuthUser,
+    Json(body): Json<CreateOrderRequest>,
+) -> Result<Json<ApiResponse<OrderResponse>>, (StatusCode, Json<ApiResponse<()>>)> {
+    create_internal(state, Some(me.user_id), axum::Json(body)).await
+}
+
+pub async fn admin_create(
+    State(state): State<AppState>,
+    _admin: RequireAdmin,
+    body: CreateOrderRequest,
+) -> Result<Json<ApiResponse<OrderResponse>>, (StatusCode, Json<ApiResponse<()>>)> {
+    create_internal(state, None, axum::Json(body)).await
+}
+
+async fn create_internal(
+    state: AppState,
+    user_id: Option<i32>,
     Json(body): Json<CreateOrderRequest>,
 ) -> Result<Json<ApiResponse<OrderResponse>>, (StatusCode, Json<ApiResponse<()>>)> {
     let mut total = Decimal::ZERO;
@@ -102,7 +118,7 @@ pub async fn create(
     }
 
     let ord = order::ActiveModel {
-        user_id: Set(Some(me.user_id)),
+        user_id: Set(user_id),
         anon_name: Set(body.anon_name),
         status: Set("pending".into()),
         total: Set(total),

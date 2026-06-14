@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import client from "@/api/client";
-import CrudPage from "@/components/admin/CrudPage";
+import CrudDual from "@/components/admin/CrudDual";
 import "@/pages/admin/AdminWarehouses.scss";
 import "@/pages/admin/AdminWarehouses_responsive.scss";
 
@@ -38,15 +38,10 @@ function AdminWarehouses() {
   useEffect(() => { fetch(); }, []);
 
   useEffect(() => {
-    if (editWId) {
-      const w = warehouses.find((x) => x.id === Number(editWId));
-      setWName(w?.name ?? "");
-    } else { setWName(""); }
-    if (editSId) {
-      const s = units.find((x) => x.id === Number(editSId));
-      setSCode(s?.code ?? "");
-      setSWarehouse(s ? String(s.warehouse_id) : "");
-    } else { setSCode(""); setSWarehouse(""); }
+    if (editWId) { const w = warehouses.find((x) => x.id === Number(editWId)); setWName(w?.name ?? ""); }
+    else { setWName(""); }
+    if (editSId) { const s = units.find((x) => x.id === Number(editSId)); setSCode(s?.code ?? ""); setSWarehouse(s ? String(s.warehouse_id) : ""); }
+    else { setSCode(""); setSWarehouse(""); }
   }, [editWId, editSId, warehouses, units]);
 
   const handleSaveW = async (e: React.FormEvent) => {
@@ -77,39 +72,36 @@ function AdminWarehouses() {
   );
 
   return (
-    <CrudPage
-      title="Almacenes" search={{ placeholder: "Buscar por nombre o código...", value: search, onChange: setSearch }}
+    <CrudDual
+      title="Almacenes"
+      search={{ placeholder: "Buscar por nombre o código...", value: search, onChange: setSearch }}
       tabs={[
         { key: "warehouses", label: "Almacenes", active: view === "warehouses", onClick: () => setParams({ view: "warehouses" }) },
         { key: "units", label: "Ubicaciones", active: view === "units", onClick: () => setParams({ view: "units" }) },
       ]}
+      error={error}
     >
-      {error && <p className="error-msg">{error}</p>}
-
       {view === "warehouses" && (
         <>
-          <form className="admin-wh__form" onSubmit={handleSaveW}>
-            <input className="admin-wh__input" value={wName} onChange={(e) => setWName(e.target.value)} placeholder="Nombre del almacén" required={!editWId} />
-            <button className="admin-wh__btn" type="submit" disabled={saving}>
-              {saving ? "..." : editWId ? "Actualizar" : "+ Crear"}
-            </button>
-            {editWId && <button className="admin-wh__cancel" type="button" onClick={() => setParams({ view: "warehouses" })}>Cancelar</button>}
-          </form>
+          <CrudDual.FormCard title={editWId ? "Editar almacén" : "Nuevo almacén"} onSubmit={handleSaveW} saving={saving} onCancel={editWId ? () => setParams({ view: "warehouses" }) : undefined}>
+            <input className="field-input" value={wName} onChange={(e) => setWName(e.target.value)} placeholder="Nombre del almacén" required={!editWId} style={{ flex: 1 }} />
+            <button type="submit" className="crud__action" disabled={saving}>{saving ? "..." : editWId ? "Actualizar" : "+ Crear"}</button>
+          </CrudDual.FormCard>
 
-          {loading ? <p className="admin-wh__status">Cargando...</p>
-          : filteredWarehouses.length === 0 ? <p className="admin-wh__status">Sin almacenes</p>
+          {loading ? <p className="status-msg">Cargando...</p>
+          : filteredWarehouses.length === 0 ? <p className="status-msg">Sin almacenes</p>
           : (
-            <div className="admin-wh__table-wrap">
-              <table className="admin-wh__table">
+            <div className="table-wrap">
+              <table className="data-table">
                 <thead><tr><th>ID</th><th>Nombre</th><th>Ubicaciones</th><th>Acciones</th></tr></thead>
                 <tbody>
                   {filteredWarehouses.map((w) => (
                     <tr key={w.id}>
                       <td>{w.id}</td><td>{w.name}</td>
                       <td>{units.filter((u) => u.warehouse_id === w.id).length}</td>
-                      <td className="admin-wh__actions-cell">
+                      <td className="cell-actions">
                         <button onClick={() => setParams({ view: "warehouses", editW: String(w.id) })}>Editar</button>
-                        <button className="admin-wh__delete" onClick={async () => {
+                        <button className="btn-danger" onClick={async () => {
                           if (!confirm("¿Eliminar almacén?")) return;
                           try { await client.delete(`/warehouses/${w.id}`); fetch(); } catch { setError("Error"); }
                         }}>Eliminar</button>
@@ -125,39 +117,36 @@ function AdminWarehouses() {
 
       {view === "units" && (
         <>
-          <form className="admin-wh__form" onSubmit={handleSaveS}>
-            <select className="admin-wh__input" value={sWarehouse} onChange={(e) => setSWarehouse(e.target.value)} required={!editSId} disabled={!!editSId}>
+          <CrudDual.FormCard title={editSId ? "Editar ubicación" : "Nueva ubicación"} onSubmit={handleSaveS} saving={saving} onCancel={editSId ? () => setParams({ view: "units" }) : undefined}>
+            <select className="field-input" value={sWarehouse} onChange={(e) => setSWarehouse(e.target.value)} required={!editSId} disabled={!!editSId} style={{ minWidth: '12rem' }}>
               <option value="">Seleccionar almacén...</option>
               {filteredWarehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
             </select>
-            <input className="admin-wh__input" value={sCode} onChange={(e) => setSCode(e.target.value)} placeholder="Código (ej: A-01)" required />
-            <button className="admin-wh__btn" type="submit" disabled={saving}>
-              {saving ? "..." : editSId ? "Actualizar" : "+ Crear"}
-            </button>
-            {editSId && <button className="admin-wh__cancel" type="button" onClick={() => setParams({ view: "units" })}>Cancelar</button>}
-          </form>
+            <input className="field-input" value={sCode} onChange={(e) => setSCode(e.target.value)} placeholder="Código (ej: A-01)" required />
+            <button type="submit" className="crud__action" disabled={saving}>{saving ? "..." : editSId ? "Actualizar" : "+ Crear"}</button>
+          </CrudDual.FormCard>
 
           <div className="admin-wh__filter">
-            <select value={selectedW ?? ""} onChange={(e) => setSelectedW(e.target.value ? Number(e.target.value) : null)}>
+            <select className="field-input" value={selectedW ?? ""} onChange={(e) => setSelectedW(e.target.value ? Number(e.target.value) : null)}>
               <option value="">Todos los almacenes</option>
               {filteredWarehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
             </select>
           </div>
 
-          {loading ? <p className="admin-wh__status">Cargando...</p>
-          : filteredUnits.length === 0 ? <p className="admin-wh__status">Sin ubicaciones</p>
+          {loading ? <p className="status-msg">Cargando...</p>
+          : filteredUnits.length === 0 ? <p className="status-msg">Sin ubicaciones</p>
           : (
-            <div className="admin-wh__table-wrap">
-              <table className="admin-wh__table">
+            <div className="table-wrap">
+              <table className="data-table">
                 <thead><tr><th>ID</th><th>Código</th><th>Almacén</th><th>Acciones</th></tr></thead>
                 <tbody>
                   {filteredUnits.map((u) => (
                     <tr key={u.id}>
                       <td>{u.id}</td><td>{u.code}</td>
                       <td>{warehouses.find((w) => w.id === u.warehouse_id)?.name ?? "—"}</td>
-                      <td className="admin-wh__actions-cell">
+                      <td className="cell-actions">
                         <button onClick={() => setParams({ view: "units", editS: String(u.id) })}>Editar</button>
-                        <button className="admin-wh__delete" onClick={async () => {
+                        <button className="btn-danger" onClick={async () => {
                           if (!confirm("¿Eliminar ubicación?")) return;
                           try { await client.delete(`/storage-units/${u.id}`); fetch(); } catch { setError("Error"); }
                         }}>Eliminar</button>
@@ -170,7 +159,7 @@ function AdminWarehouses() {
           )}
         </>
       )}
-    </CrudPage>
+    </CrudDual>
   );
 }
 

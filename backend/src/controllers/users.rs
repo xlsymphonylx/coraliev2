@@ -3,17 +3,84 @@ use axum::{
     extract::{Path, State},
     http::StatusCode,
 };
-use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, ModelTrait, QueryFilter, Set};
+use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, ModelTrait, QueryFilter, Set, TransactionTrait};
 
 use crate::{
     dto::{
         auth::RoleInfo,
         common::ApiResponse,
-        user::{UpdateUserRequest, UserResponse},
+        user::{CreateUserRequest, UpdateUserRequest, UserResponse},
     },
     models::{role, user, user::Entity as User},
     state::AppState,
 };
+
+pub async fn create(
+    State(state): State<AppState>,
+    Json(body): Json<CreateUserRequest>,
+) -> Result<Json<ApiResponse<UserResponse>>, (StatusCode, Json<ApiResponse<()>>)> {
+    let txn = state.db.begin().await.map_err(|e| {
+        (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string())))
+    })?;
+
+    let existing = User::find()
+        .filter(sea_orm::Condition::any()
+            .add(user::Column::Username.eq(&body.username))
+            .add(user::Column::Email.eq(&body.email)))
+        .one(&txn)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+
+    if existing.is_some() {
+        return Err((StatusCode::CONFLICT, Json(ApiResponse::error(409, "username or email already taken".into()))));
+    }
+
+    let password_hash = bcrypt::hash(&body.password, 10).map_err(|e| {
+        (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string())))
+    })?;
+
+    let new_user = user::ActiveModel {
+        username: Set(body.username.clone()),
+        email: Set(body.email.clone()),
+        password_hash: Set(password_hash),
+        ..Default::default()
+    }
+    .insert(&txn)
+    .await
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+
+    // Assign roles
+    for rid in &body.role_ids {
+        let ur = crate::models::user_role::ActiveModel {
+            user_id: Set(new_user.id),
+            role_id: Set(*rid),
+            created_at: Set(chrono::Utc::now()),
+            deleted_at: Set(None),
+            ..Default::default()
+        };
+        ur.insert(&txn).await.map_err(|e| {
+            (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string())))
+        })?;
+    }
+
+    txn.commit().await.map_err(|e| {
+        (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string())))
+    })?;
+
+    let roles = new_user.find_related(role::Entity).all(&state.db).await.map_err(|e| {
+        (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string())))
+    })?;
+    let role_infos: Vec<RoleInfo> = roles.into_iter().map(|r| r.into()).collect();
+
+    Ok(Json(ApiResponse::ok(UserResponse {
+        id: new_user.id,
+        username: new_user.username,
+        email: new_user.email,
+        roles: role_infos,
+        created_at: new_user.created_at.to_rfc3339(),
+        updated_at: new_user.updated_at.to_rfc3339(),
+    })))
+}
 
 pub async fn list(
     State(state): State<AppState>,

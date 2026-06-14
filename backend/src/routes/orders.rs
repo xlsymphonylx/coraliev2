@@ -13,6 +13,11 @@ pub fn router() -> Router<AppState> {
                 orders::create(State(state), me, Json(body)).await
             },
         ))
+        .route("/admin", post(
+            |State(state): State<AppState>, _a: RequireAdmin, Json(body): Json<crate::dto::order::CreateOrderRequest>| async move {
+                orders::admin_create(State(state), _a, body).await
+            },
+        ))
         .route("/", get(
             |s: State<AppState>, _: RequireAdmin| async move { orders::list(s).await },
         ))
