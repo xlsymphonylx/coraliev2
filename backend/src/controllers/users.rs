@@ -42,6 +42,7 @@ pub async fn create(
     let new_user = user::ActiveModel {
         username: Set(body.username.clone()),
         email: Set(body.email.clone()),
+        phone: Set(body.phone.clone()),
         password_hash: Set(password_hash),
         ..Default::default()
     }
@@ -75,6 +76,7 @@ pub async fn create(
     Ok(Json(ApiResponse::ok(UserResponse {
         id: new_user.id,
         username: new_user.username,
+            phone: new_user.phone,
         email: new_user.email,
         roles: role_infos,
         created_at: new_user.created_at.to_rfc3339(),
@@ -109,6 +111,7 @@ pub async fn list(
         responses.push(UserResponse {
             id: u.id,
             username: u.username,
+                phone: u.phone,
             email: u.email,
             roles: role_infos,
             created_at: u.created_at.to_rfc3339(),
@@ -152,6 +155,7 @@ pub async fn get(
     Ok(Json(ApiResponse::ok(UserResponse {
         id: user.id,
         username: user.username,
+            phone: user.phone,
         email: user.email,
         roles: role_infos,
         created_at: user.created_at.to_rfc3339(),
@@ -259,6 +263,7 @@ pub async fn update(
     Ok(Json(ApiResponse::ok(UserResponse {
         id: updated.id,
         username: updated.username,
+            phone: updated.phone,
         email: updated.email,
         roles: role_infos,
         created_at: updated.created_at.to_rfc3339(),

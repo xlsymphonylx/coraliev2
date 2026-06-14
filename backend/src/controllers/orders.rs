@@ -11,7 +11,7 @@ use sea_orm::{
 use crate::{
     dto::{
         common::ApiResponse,
-        order::{CreateOrderRequest, OrderItemResponse, OrderResponse, UpdateOrderStatusRequest},
+        order::{CreateOrderRequest, OrderAddressInfo, OrderItemResponse, OrderResponse, OrderUserInfo, UpdateOrderStatusRequest},
     },
     models::{inventory, order, order_item, order_item::Entity as OrderItem, product},
     state::AppState,
@@ -120,6 +120,8 @@ async fn create_internal(
     let ord = order::ActiveModel {
         user_id: Set(user_id),
         anon_name: Set(body.anon_name),
+        anon_email: Set(body.anon_email),
+        anon_phone: Set(body.anon_phone),
         status: Set("pending".into()),
         total: Set(total),
         shipping_address_id: Set(body.shipping_address_id),
@@ -135,7 +137,6 @@ async fn create_internal(
         )
     })?;
 
-    let mut order_items_resp = Vec::new();
     for (product_id, qty) in items_to_insert {
         let oi = order_item::ActiveModel {
             order_id: Set(ord.id),
@@ -146,30 +147,12 @@ async fn create_internal(
         .insert(&state.db)
         .await
         .map_err(|e| {
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(ApiResponse::error(500, e.to_string())),
-            )
+            (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string())))
         })?;
-        order_items_resp.push(OrderItemResponse {
-            id: oi.id,
-            product_id: oi.product_id,
-            quantity: oi.quantity,
-        });
     }
 
-    Ok(Json(ApiResponse::ok(OrderResponse {
-        id: ord.id,
-        user_id: ord.user_id,
-        anon_name: ord.anon_name,
-        status: ord.status,
-        total: ord.total,
-        items: order_items_resp,
-        shipping_address_id: ord.shipping_address_id,
-        notes: ord.notes,
-        created_at: ord.created_at.to_rfc3339(),
-        updated_at: ord.updated_at.to_rfc3339(),
-    })))
+    build_order_response(&state.db, ord).await
+        .map(|r| Json(ApiResponse::ok(r)))
 }
 
 pub async fn list(
@@ -260,16 +243,51 @@ async fn build_order_response(
     o: order::Model,
 ) -> Result<OrderResponse, (StatusCode, Json<ApiResponse<()>>)> {
     let items = o.find_related(OrderItem).all(db).await.map_err(|e| {
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(ApiResponse::error(500, e.to_string())),
-        )
+        (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string())))
     })?;
+
+    // Fetch user info if linked to a registered user
+    let user = if let Some(uid) = o.user_id {
+        let u = crate::models::user::Entity::find_by_id(uid)
+            .one(db)
+            .await
+            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+        u.map(|u| OrderUserInfo {
+            id: u.id,
+            username: u.username,
+            email: u.email,
+            phone: u.phone,
+        })
+    } else {
+        None
+    };
+
+    // Fetch shipping address
+    let address = if let Some(aid) = o.shipping_address_id {
+        let a = crate::models::address::Entity::find_by_id(aid)
+            .one(db)
+            .await
+            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::error(500, e.to_string()))))?;
+        a.map(|a| OrderAddressInfo {
+            id: a.id,
+            label: a.label,
+            line1: a.line1,
+            line2: a.line2,
+            city: a.city,
+            state: a.state,
+        })
+    } else {
+        None
+    };
 
     Ok(OrderResponse {
         id: o.id,
         user_id: o.user_id,
+        user,
+        shipping_address: address,
         anon_name: o.anon_name,
+        anon_email: o.anon_email,
+        anon_phone: o.anon_phone,
         status: o.status,
         total: o.total,
         items: items

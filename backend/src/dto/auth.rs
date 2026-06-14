@@ -6,6 +6,7 @@ use crate::models::role;
 pub struct SignupRequest {
     pub username: String,
     pub email: String,
+    pub phone: Option<String>,
     pub password: String,
 }
 

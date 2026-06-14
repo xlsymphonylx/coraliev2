@@ -64,6 +64,7 @@ pub async fn signup(
     let user = user::ActiveModel {
         username: Set(body.username.clone()),
         email: Set(body.email.clone()),
+        phone: Set(body.phone.clone()),
         password_hash: Set(password_hash),
         ..Default::default()
     }

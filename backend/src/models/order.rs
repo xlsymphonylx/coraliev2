@@ -7,6 +7,8 @@ pub struct Model {
     pub id: i32,
     pub user_id: Option<i32>,
     pub anon_name: Option<String>,
+    pub anon_email: Option<String>,
+    pub anon_phone: Option<String>,
     pub status: String,
     #[sea_orm(column_type = "Decimal(Some((10, 2)))")]
     pub total: Decimal,

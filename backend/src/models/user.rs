@@ -7,6 +7,7 @@ pub struct Model {
     pub id: i32,
     pub username: String,
     pub email: String,
+    pub phone: Option<String>,
     pub password_hash: String,
     pub created_at: DateTimeUtc,
     pub updated_at: DateTimeUtc,

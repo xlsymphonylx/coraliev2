@@ -7,6 +7,7 @@ pub struct UserResponse {
     pub id: i32,
     pub username: String,
     pub email: String,
+    pub phone: Option<String>,
     pub roles: Vec<RoleInfo>,
     pub created_at: String,
     pub updated_at: String,
@@ -16,6 +17,7 @@ pub struct UserResponse {
 pub struct CreateUserRequest {
     pub username: String,
     pub email: String,
+    pub phone: Option<String>,
     pub password: String,
     pub role_ids: Vec<i32>,
 }
@@ -24,5 +26,6 @@ pub struct CreateUserRequest {
 pub struct UpdateUserRequest {
     pub username: Option<String>,
     pub email: Option<String>,
+    pub phone: Option<String>,
     pub password: Option<String>,
 }
