@@ -45,6 +45,67 @@
     }
   }
 
+  // ─── Dropdown ──────────────────────────────────────────────
+
+  &__dropdown {
+    position: relative;
+
+    &-trigger {
+      @extend .navbar__link;
+      border: none;
+      background: none;
+      font-family: inherit;
+      font-size: inherit;
+      gap: 0.35rem;
+      width: auto;
+    }
+
+    &-chevron {
+      transition: transform 0.2s;
+    }
+
+    &--open &-chevron {
+      transform: rotate(180deg);
+    }
+
+    &--open &-trigger {
+      border-bottom-color: var(--coralie-white);
+    }
+
+    &-menu {
+      display: none;
+      position: absolute;
+      top: 2.3rem;
+      left: 0;
+      min-width: 14rem;
+      background: var(--coralie-white);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow);
+      padding: 0.5rem 0;
+      z-index: 100;
+      flex-direction: column;
+    }
+
+    &--open &-menu {
+      display: flex;
+    }
+
+    &-item {
+      padding: 0.6rem 1.25rem;
+      color: var(--coralie-dark);
+      text-decoration: none;
+      font-family: var(--coralie-main-font);
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: background 0.15s;
+
+      &:hover {
+        background: var(--coralie-petal);
+        color: var(--coralie-spicy);
+      }
+    }
+  }
+
   &__user-area,
   &__auth-actions {
     @include flex-layout();

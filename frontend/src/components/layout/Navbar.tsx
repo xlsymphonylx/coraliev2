@@ -3,6 +3,7 @@ import { HomeIcon, LogIn, LogOut, Menu, MessageCircle, Package, ShieldCheck, Use
 import { Link, useNavigate } from "react-router-dom";
 import { clearToken } from "@/api/client";
 import UserDropdown from "./UserDropdown";
+import NavDropdown from "./NavDropdown";
 import "@/components/layout/styles/Navbar.scss";
 import "@/components/layout/styles/Navbar_responsive.scss";
 
@@ -37,10 +38,18 @@ function Navbar({ isAuthenticated, isAdmin, username }: NavbarProps) {
           <HomeIcon />
           Inicio
         </Link>
-        <Link to="/productos?category=maquillaje" className="navbar__link" onClick={() => setMenuOpen(false)}>
-          <Package />
-          Productos
-        </Link>
+        <NavDropdown
+          icon={<Package />}
+          label="Productos"
+          menuOpen={menuOpen}
+          onNavigate={() => setMenuOpen(false)}
+          items={[
+            { label: "Maquillaje", to: "/productos?category=maquillaje" },
+            { label: "Cuidado Personal", to: "/productos?category=cuidado-personal" },
+            { label: "Accesorios", to: "/productos?category=accesorios" },
+            { label: "Ver todos", to: "/productos" },
+          ]}
+        />
         <Link to="/" className="navbar__link" onClick={() => setMenuOpen(false)}>
           <MessageCircle />
           Contacto
