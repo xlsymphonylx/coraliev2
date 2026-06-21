@@ -103,6 +103,21 @@
         background: var(--coralie-petal);
         color: var(--coralie-spicy);
       }
+
+      &--sub {
+        padding-left: 2rem;
+        font-size: 0.82rem;
+        font-weight: 500;
+      }
+    }
+
+    &-submenu {
+      border-top: 1px solid var(--coralie-petal);
+      padding-top: 0.25rem;
+    }
+
+    &-group + &-group {
+      border-top: 1px solid var(--coralie-petal);
     }
   }
 

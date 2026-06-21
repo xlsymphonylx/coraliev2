@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import client from "@/api/client";
+import { fetchCategories, buildCategoryTree, flattenTree } from "@/api/categories";
+import type { CategoryWithDepth } from "@/api/categories";
 import CrudPage from "@/components/admin/CrudPage";
 import DataTable from "@/components/admin/DataTable";
 import type { Column } from "@/components/admin/DataTable";
 import "@/pages/admin/AdminCategories.scss";
-
-type Category = { id: number; name: string; slug: string; description: string | null; parent_id: number | null };
 
 function AdminCategories() {
   const [params, setParams] = useSearchParams();
   const action = params.get("action") || "list";
   const editId = params.get("id");
 
-  const [items, setItems] = useState<Category[]>([]);
+  const [items, setItems] = useState<CategoryWithDepth[]>([]);
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [desc, setDesc] = useState("");
@@ -24,7 +24,10 @@ function AdminCategories() {
 
   const fetch = async () => {
     setLoading(true);
-    try { const { data } = await client.get("/categories"); setItems(data.data ?? []); }
+    try {
+      const cats = await fetchCategories();
+      setItems(flattenTree(buildCategoryTree(cats)));
+    }
     catch { setError("Error al cargar"); }
     finally { setLoading(false); }
   };
@@ -74,7 +77,11 @@ function AdminCategories() {
             <span>Categoría padre</span>
             <select value={parentId} onChange={(e) => setParentId(e.target.value)}>
               <option value="">Ninguna (raíz)</option>
-              {items.filter((c) => c.id !== Number(editId)).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              {items.filter((c) => c.id !== Number(editId)).map((c) => (
+                <option key={c.id} value={c.id}>
+                  {"—".repeat(c.depth)}{c.depth > 0 ? " " : ""}{c.name}
+                </option>
+              ))}
             </select>
           </label>
           <div className="admin-cat__actions">
@@ -92,9 +99,17 @@ function AdminCategories() {
     !search || c.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const columns: Column<Category>[] = [
+  const columns: Column<CategoryWithDepth>[] = [
     { header: "ID", render: (c) => c.id },
-    { header: "Nombre", render: (c) => c.name },
+    {
+      header: "Nombre",
+      render: (c) => (
+        <span style={{ paddingLeft: `${c.depth * 1.25}rem`, display: "inline-block" }}>
+          {c.depth > 0 && <span style={{ marginRight: "0.35rem", opacity: 0.4 }}>└─</span>}
+          {c.name}
+        </span>
+      ),
+    },
     { header: "Slug", render: (c) => c.slug, hideOnMobile: true },
     { header: "Padre", render: (c) => items.find((p) => p.id === c.parent_id)?.name ?? "—", hideOnMobile: true },
     {

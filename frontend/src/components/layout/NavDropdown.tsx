@@ -2,9 +2,10 @@ import { useState, useRef, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 
-type DropdownItem = {
+export type DropdownItem = {
   label: string;
   to: string;
+  children?: DropdownItem[];
 };
 
 type NavDropdownProps = {
@@ -50,14 +51,29 @@ function NavDropdown({ icon, label, items, menuOpen, onNavigate }: NavDropdownPr
 
       <div className="navbar__dropdown-menu">
         {items.map((item) => (
-          <Link
-            key={item.to}
-            to={item.to}
-            className="navbar__dropdown-item"
-            onClick={onNavigate}
-          >
-            {item.label}
-          </Link>
+          <div key={item.to} className="navbar__dropdown-group">
+            <Link
+              to={item.to}
+              className="navbar__dropdown-item"
+              onClick={onNavigate}
+            >
+              {item.label}
+            </Link>
+            {item.children && item.children.length > 0 && (
+              <div className="navbar__dropdown-submenu">
+                {item.children.map((child) => (
+                  <Link
+                    key={child.to}
+                    to={child.to}
+                    className="navbar__dropdown-item navbar__dropdown-item--sub"
+                    onClick={onNavigate}
+                  >
+                    {child.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         ))}
       </div>
     </div>

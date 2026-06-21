@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { HomeIcon, LogIn, LogOut, Menu, MessageCircle, Package, ShieldCheck, UserPlus, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { clearToken } from "@/api/client";
+import { fetchCategories, buildCategoryTree } from "@/api/categories";
+import type { CategoryTreeNode } from "@/api/categories";
 import UserDropdown from "./UserDropdown";
 import NavDropdown from "./NavDropdown";
+import type { DropdownItem } from "./NavDropdown";
 import "@/components/layout/styles/Navbar.scss";
 import "@/components/layout/styles/Navbar_responsive.scss";
 
@@ -15,13 +18,32 @@ type NavbarProps = {
 
 function Navbar({ isAuthenticated, isAdmin, username }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [catTree, setCatTree] = useState<CategoryTreeNode[]>([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchCategories()
+      .then((cats) => setCatTree(buildCategoryTree(cats)))
+      .catch(() => {}); // non-critical, navbar still works
+  }, []);
 
   const handleLogout = () => {
     clearToken();
     setMenuOpen(false);
     navigate("/login", { replace: true });
   };
+
+  /** Convert category tree nodes into NavDropdown items */
+  function treeToDropdownItems(nodes: CategoryTreeNode[]): DropdownItem[] {
+    const items: DropdownItem[] = nodes.map((node) => ({
+      label: node.name,
+      to: `/productos?category=${node.slug}`,
+      children: node.children.length > 0 ? treeToDropdownItems(node.children) : undefined,
+    }));
+    // Add "Ver todos" at the end
+    items.push({ label: "Ver todos", to: "/productos" });
+    return items;
+  }
 
   return (
     <nav className="navbar">
@@ -43,12 +65,7 @@ function Navbar({ isAuthenticated, isAdmin, username }: NavbarProps) {
           label="Productos"
           menuOpen={menuOpen}
           onNavigate={() => setMenuOpen(false)}
-          items={[
-            { label: "Maquillaje", to: "/productos?category=maquillaje" },
-            { label: "Cuidado Personal", to: "/productos?category=cuidado-personal" },
-            { label: "Accesorios", to: "/productos?category=accesorios" },
-            { label: "Ver todos", to: "/productos" },
-          ]}
+          items={treeToDropdownItems(catTree)}
         />
         <Link to="/" className="navbar__link" onClick={() => setMenuOpen(false)}>
           <MessageCircle />

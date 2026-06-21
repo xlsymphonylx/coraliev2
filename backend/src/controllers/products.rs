@@ -8,6 +8,8 @@ use sea_orm::{
     ActiveModelTrait, ColumnTrait, EntityTrait, ModelTrait, QueryFilter, QueryOrder, Set,
 };
 
+use std::collections::HashSet;
+
 use crate::{
     dto::{
         category::CategorySummary,
@@ -44,7 +46,13 @@ pub async fn list(
     let mut query = product::Entity::find().filter(product::Column::DeletedAt.is_null());
 
     if let Some(cat_id) = q.category_id {
-        query = query.filter(product::Column::CategoryId.eq(cat_id));
+        let all_ids = collect_category_and_descendants(&state.db, cat_id).await.map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse::error(500, e.to_string())),
+            )
+        })?;
+        query = query.filter(product::Column::CategoryId.is_in(all_ids));
     }
     if let Some(pt) = q.product_type {
         query = query.filter(product::Column::ProductType.eq(pt));
@@ -526,4 +534,34 @@ async fn build_response(
         created_at: p.created_at.to_rfc3339(),
         updated_at: p.updated_at.to_rfc3339(),
     })
+}
+
+/// Recursively collect the given category ID and all its descendant IDs.
+async fn collect_category_and_descendants(
+    db: &sea_orm::DatabaseConnection,
+    cat_id: i32,
+) -> Result<Vec<i32>, sea_orm::DbErr> {
+    let mut ids = HashSet::new();
+    ids.insert(cat_id);
+
+    let mut current_parents = vec![cat_id];
+    loop {
+        let children = category::Entity::find()
+            .filter(category::Column::ParentId.is_in(current_parents.clone()))
+            .filter(category::Column::DeletedAt.is_null())
+            .all(db)
+            .await?;
+
+        if children.is_empty() {
+            break;
+        }
+
+        let child_ids: Vec<i32> = children.iter().map(|c| c.id).collect();
+        for &id in &child_ids {
+            ids.insert(id);
+        }
+        current_parents = child_ids;
+    }
+
+    Ok(ids.into_iter().collect())
 }
