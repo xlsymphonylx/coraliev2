@@ -20,6 +20,10 @@ mod m20220101_000017_create_orders_table;
 mod m20220101_000018_create_order_items_table;
 mod m20220101_000019_add_barcode_to_products;
 mod m20220101_000020_add_contact_fields;
+mod m20220101_000021_create_coupons_table;
+mod m20220101_000022_add_dates_to_volume_discounts;
+mod m20220101_000023_create_discount_sets_table;
+mod m20220101_000024_add_discount_set_id;
 
 pub struct Migrator;
 
@@ -47,6 +51,10 @@ impl MigratorTrait for Migrator {
             Box::new(m20220101_000018_create_order_items_table::Migration),
             Box::new(m20220101_000019_add_barcode_to_products::Migration),
             Box::new(m20220101_000020_add_contact_fields::Migration),
+            Box::new(m20220101_000021_create_coupons_table::Migration),
+            Box::new(m20220101_000022_add_dates_to_volume_discounts::Migration),
+            Box::new(m20220101_000023_create_discount_sets_table::Migration),
+            Box::new(m20220101_000024_add_discount_set_id::Migration),
         ]
     }
 }

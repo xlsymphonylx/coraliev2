@@ -1,5 +1,6 @@
-use serde::{Deserialize, Serialize};
 use rust_decimal::Decimal;
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Debug, Serialize)]
 pub struct ProductDiscountResponse {
@@ -9,6 +10,7 @@ pub struct ProductDiscountResponse {
     pub active: bool,
     pub starts_at: Option<String>,
     pub ends_at: Option<String>,
+    pub discount_set_id: Option<Uuid>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -18,6 +20,7 @@ pub struct CreateProductDiscountRequest {
     pub active: Option<bool>,
     pub starts_at: Option<String>,
     pub ends_at: Option<String>,
+    pub discount_set_id: Option<Uuid>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -26,4 +29,5 @@ pub struct UpdateProductDiscountRequest {
     pub active: Option<bool>,
     pub starts_at: Option<String>,
     pub ends_at: Option<String>,
+    pub discount_set_id: Option<Uuid>,
 }

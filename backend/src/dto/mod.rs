@@ -3,6 +3,8 @@ pub mod auth;
 pub mod bundle_item;
 pub mod category;
 pub mod common;
+pub mod coupon;
+pub mod discount_set;
 pub mod inventory;
 pub mod order;
 pub mod product;

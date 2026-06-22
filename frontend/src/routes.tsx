@@ -2,6 +2,7 @@ import type { ReactElement } from "react";
 import type { MiddlewareKey } from "./components/middlewares/ApplyMiddleware";
 import AdminCategories from "./pages/admin/AdminCategories";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminDiscountSets from "./pages/admin/AdminDiscountSets";
 import AdminDiscounts from "./pages/admin/AdminDiscounts";
 import AdminInventory from "./pages/admin/AdminInventory";
 import AdminOrders from "./pages/admin/AdminOrders";
@@ -35,5 +36,6 @@ export const routes: AppRoute[] = [
   { path: "/admin/inventario", element: <AdminInventory />, middleware: ["admin"] },
   { path: "/admin/almacenes", element: <AdminWarehouses />, middleware: ["admin"] },
   { path: "/admin/descuentos", element: <AdminDiscounts />, middleware: ["admin"] },
+  { path: "/admin/conjuntos-descuentos", element: <AdminDiscountSets />, middleware: ["admin"] },
   { path: "/404", element: <Error />, middleware: [] },
 ];

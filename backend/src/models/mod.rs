@@ -1,6 +1,8 @@
 pub mod address;
 pub mod bundle_item;
 pub mod category;
+pub mod coupon;
+pub mod discount_set;
 pub mod inventory;
 pub mod order;
 pub mod order_item;

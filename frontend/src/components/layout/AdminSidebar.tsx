@@ -16,6 +16,7 @@ const navItems = [
   { to: "/admin/inventario", label: "Inventario", icon: Warehouse },
   { to: "/admin/almacenes", label: "Almacenes", icon: Building2 },
   { to: "/admin/descuentos", label: "Descuentos", icon: Percent },
+  { to: "/admin/conjuntos-descuentos", label: "Conjuntos Descuentos", icon: Percent },
 ];
 
 type AdminSidebarProps = {

@@ -2,6 +2,8 @@ pub mod addresses;
 pub mod auth;
 pub mod bundle_items;
 pub mod categories;
+pub mod coupons;
+pub mod discount_sets;
 pub mod health;
 pub mod inventory;
 pub mod orders;

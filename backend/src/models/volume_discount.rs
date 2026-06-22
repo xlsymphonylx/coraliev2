@@ -10,7 +10,11 @@ pub struct Model {
     #[sea_orm(column_type = "Decimal(Some((5, 2)))")]
     pub discount_percent: Decimal,
     pub description: Option<String>,
+    pub starts_at: Option<DateTimeUtc>,
+    pub ends_at: Option<DateTimeUtc>,
+    pub active: Option<bool>,
     pub deleted_at: Option<DateTimeUtc>,
+    pub discount_set_id: Option<Uuid>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -21,6 +25,12 @@ pub enum Relation {
         to = "super::product::Column::Id"
     )]
     Product,
+    #[sea_orm(
+        belongs_to = "super::discount_set::Entity",
+        from = "Column::DiscountSetId",
+        to = "super::discount_set::Column::Id"
+    )]
+    DiscountSet,
 }
 
 impl Related<super::product::Entity> for Entity {
