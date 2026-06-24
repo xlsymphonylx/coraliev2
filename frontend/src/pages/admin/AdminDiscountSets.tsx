@@ -3,7 +3,7 @@ import client from "@/api/client";
 import CrudPage from "@/components/admin/CrudPage";
 import DataTable from "@/components/admin/DataTable";
 import type { Column } from "@/components/admin/DataTable";
-import "@/pages/admin/AdminDiscountSets.scss";
+import AdminForm from "@/components/admin/AdminForm";
 
 type DiscountSet = { id: string; name: string; slug: string; description: string | null; active: boolean | null; starts_at: string | null; ends_at: string | null };
 
@@ -109,20 +109,31 @@ function AdminDiscountSets() {
       {error && <p className="error-msg">{error}</p>}
 
       {showForm && (
-        <form className="ds-form" onSubmit={handleSubmit}>
-          <h3>{editId ? "Editar conjunto" : "Nuevo conjunto"}</h3>
-          <div className="ds-form__row">
-            <input className="field-input" type="text" placeholder="Nombre *" value={formName} onChange={(e) => setFormName(e.target.value)} required style={{ flex: 1 }} />
-            <input className="field-input" type="text" placeholder="Slug *" value={formSlug} onChange={(e) => setFormSlug(e.target.value)} required style={{ flex: 1 }} />
-            <input className="field-input" type="text" placeholder="Descripción" value={formDesc} onChange={(e) => setFormDesc(e.target.value)} style={{ flex: 1 }} />
-            <select className="field-input" value={formActive} onChange={(e) => setFormActive(e.target.value)} style={{ flex: 1 }}>
-              <option value="true">Activo</option><option value="false">Inactivo</option>
-            </select>
-            <input className="field-input" type="date" value={formStart} onChange={(e) => setFormStart(e.target.value)} style={{ flex: 1 }} />
-            <input className="field-input" type="date" value={formEnd} onChange={(e) => setFormEnd(e.target.value)} style={{ flex: 1 }} />
-            <button type="submit" className="crud__action" disabled={saving}>{saving ? "..." : editId ? "Guardar" : "+ Crear"}</button>
-          </div>
-        </form>
+        <AdminForm title={editId ? "Editar conjunto" : "Nuevo conjunto"} onSubmit={handleSubmit} saving={saving}>
+          <AdminForm.Field label="Nombre *">
+            <input type="text" value={formName} onChange={(e) => setFormName(e.target.value)} required />
+          </AdminForm.Field>
+          <AdminForm.Field label="Slug *">
+            <input type="text" value={formSlug} onChange={(e) => setFormSlug(e.target.value)} required />
+          </AdminForm.Field>
+          <AdminForm.Field label="Descripción">
+            <input type="text" value={formDesc} onChange={(e) => setFormDesc(e.target.value)} />
+          </AdminForm.Field>
+          <AdminForm.Row>
+            <AdminForm.Field label="Estado">
+              <select value={formActive} onChange={(e) => setFormActive(e.target.value)}>
+                <option value="true">Activo</option><option value="false">Inactivo</option>
+              </select>
+            </AdminForm.Field>
+            <AdminForm.Field label="Inicio">
+              <input type="date" value={formStart} onChange={(e) => setFormStart(e.target.value)} />
+            </AdminForm.Field>
+            <AdminForm.Field label="Fin">
+              <input type="date" value={formEnd} onChange={(e) => setFormEnd(e.target.value)} />
+            </AdminForm.Field>
+          </AdminForm.Row>
+          <AdminForm.Actions saving={saving} saveLabel={editId ? "Guardar" : "+ Crear"} onCancel={() => { setShowForm(false); resetForm(); }} />
+        </AdminForm>
       )}
 
       <DataTable

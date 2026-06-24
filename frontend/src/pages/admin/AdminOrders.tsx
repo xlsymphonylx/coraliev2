@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import client from "@/api/client";
 import CrudPage from "@/components/admin/CrudPage";
+import AdminForm from "@/components/admin/AdminForm";
 import "@/pages/admin/AdminOrders.scss";
 
 type OrderItem = { id: number; product_id: number; quantity: number };
@@ -83,34 +84,34 @@ function AdminOrders() {
       {error && <p className="error-msg">{error}</p>}
 
       {action === "crear" && (
-        <form className="crud-dual__form" onSubmit={handleCreate} style={{ width: "100%", maxWidth: "36rem" }}>
-          <h3 className="crud-dual__form-title">Nuevo pedido</h3>
+        <AdminForm title="Nuevo pedido" onSubmit={handleCreate} saving={saving}>
+          <AdminForm.Field label="Nombre del cliente">
+            <input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Nombre del cliente" />
+          </AdminForm.Field>
 
-          <input className="field-input" value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Nombre del cliente" style={{ width: "100%", boxSizing: "border-box" }} />
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-            <span style={{ fontFamily: "var(--coralie-contrast-font)", fontSize: "0.85rem", fontWeight: 600, color: "var(--coralie-mid)" }}>Productos</span>
+          <div className="admin-form__field">
+            <span>Productos</span>
             {formItems.map((f, i) => (
-              <div key={i} className="crud-dual__form-row">
-                <select className="field-input" value={f.product_id} onChange={(e) => updateFormItem(i, "product_id", e.target.value)} required style={{ flex: 1, minWidth: "12rem" }}>
+              <div key={i} style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginTop: i > 0 ? "0.5rem" : 0 }}>
+                <select value={f.product_id} onChange={(e) => updateFormItem(i, "product_id", e.target.value)} required style={{ flex: 1, minWidth: "12rem" }} className="field-input">
                   <option value="">Seleccionar producto...</option>
                   {products.map((p) => <option key={p.id} value={p.id}>{p.name} — Q{p.price}</option>)}
                 </select>
-                <input className="field-input" type="number" min={1} value={f.quantity} onChange={(e) => updateFormItem(i, "quantity", e.target.value)} required style={{ width: "5rem" }} />
+                <input type="number" min={1} value={f.quantity} onChange={(e) => updateFormItem(i, "quantity", e.target.value)} required style={{ width: "5rem" }} className="field-input" />
                 {formItems.length > 1 && (
                   <button type="button" className="btn-danger" onClick={() => removeFormItem(i)} style={{ padding: "0.3rem 0.5rem" }}>X</button>
                 )}
               </div>
             ))}
-            <button type="button" className="btn-secondary" onClick={addFormItem} style={{ alignSelf: "flex-start" }}>+ Agregar producto</button>
+            <button type="button" className="btn-secondary" onClick={addFormItem} style={{ alignSelf: "flex-start", marginTop: "0.5rem" }}>+ Agregar producto</button>
           </div>
 
-          <textarea className="field-input" value={formNotes} onChange={(e) => setFormNotes(e.target.value)} placeholder="Notas (opcional)" rows={2} style={{ width: "100%", boxSizing: "border-box", resize: "vertical" }} />
+          <AdminForm.Field label="Notas">
+            <textarea value={formNotes} onChange={(e) => setFormNotes(e.target.value)} placeholder="Notas (opcional)" rows={2} style={{ resize: "vertical" }} />
+          </AdminForm.Field>
 
-          <div className="crud-dual__form-row">
-            <button type="submit" className="crud__action" disabled={saving}>{saving ? "..." : "Crear pedido"}</button>
-          </div>
-        </form>
+          <AdminForm.Actions saving={saving} saveLabel="Crear pedido" />
+        </AdminForm>
       )}
 
       {loading ? <p className="status-msg">Cargando...</p>

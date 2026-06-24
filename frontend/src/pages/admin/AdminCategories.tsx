@@ -6,6 +6,7 @@ import type { CategoryWithDepth } from "@/api/categories";
 import CrudPage from "@/components/admin/CrudPage";
 import DataTable from "@/components/admin/DataTable";
 import type { Column } from "@/components/admin/DataTable";
+import AdminForm from "@/components/admin/AdminForm";
 import "@/pages/admin/AdminCategories.scss";
 
 function AdminCategories() {
@@ -21,6 +22,7 @@ function AdminCategories() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
   const fetch = async () => {
     setLoading(true);
@@ -63,37 +65,40 @@ function AdminCategories() {
 
   if (action === "crear" || action === "editar") {
     return (
-      <div className="admin-cat">
-        <div className="admin-cat__header">
-          <h1 className="admin-cat__title">{action === "crear" ? "Nueva categoría" : "Editar categoría"}</h1>
-          <button className="admin-cat__back" onClick={goList}>Volver</button>
-        </div>
-        {error && <p className="error-msg">{error}</p>}
-        <form className="admin-cat__form" onSubmit={handleSave}>
-          <label className="admin-cat__field"><span>Nombre *</span><input value={name} onChange={(e) => setName(e.target.value)} required /></label>
-          <label className="admin-cat__field"><span>Slug</span><input value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="Auto-generado si se deja vacío" /></label>
-          <label className="admin-cat__field"><span>Descripción</span><textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={2} /></label>
-          <label className="admin-cat__field">
-            <span>Categoría padre</span>
-            <select value={parentId} onChange={(e) => setParentId(e.target.value)}>
-              <option value="">Ninguna (raíz)</option>
-              {items.filter((c) => c.id !== Number(editId)).map((c) => (
-                <option key={c.id} value={c.id}>
-                  {"—".repeat(c.depth)}{c.depth > 0 ? " " : ""}{c.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <div className="admin-cat__actions">
-            <button type="submit" className="admin-cat__save" disabled={saving}>{saving ? "Guardando..." : "Guardar"}</button>
-            <button type="button" className="admin-cat__cancel" onClick={goList}>Cancelar</button>
-          </div>
-        </form>
-      </div>
+      <AdminForm
+        title={action === "crear" ? "Nueva categoría" : "Editar categoría"}
+        onBack={goList}
+        onSubmit={handleSave}
+        saving={saving}
+        error={error}
+      >
+        <AdminForm.Field label="Nombre *">
+          <input value={name} onChange={(e) => setName(e.target.value)} required />
+        </AdminForm.Field>
+
+        <AdminForm.Field label="Slug">
+          <input value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="Auto-generado si se deja vacío" />
+        </AdminForm.Field>
+
+        <AdminForm.Field label="Descripción">
+          <textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={2} />
+        </AdminForm.Field>
+
+        <AdminForm.Field label="Categoría padre">
+          <select value={parentId} onChange={(e) => setParentId(e.target.value)}>
+            <option value="">Ninguna (raíz)</option>
+            {items.filter((c) => c.id !== Number(editId)).map((c) => (
+              <option key={c.id} value={c.id}>
+                {"—".repeat(c.depth)}{c.depth > 0 ? " " : ""}{c.name}
+              </option>
+            ))}
+          </select>
+        </AdminForm.Field>
+
+        <AdminForm.Actions saving={saving} onCancel={goList} />
+      </AdminForm>
     );
   }
-
-  const [search, setSearch] = useState("");
 
   const filtered = items.filter((c) =>
     !search || c.name.toLowerCase().includes(search.toLowerCase())

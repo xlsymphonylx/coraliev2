@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Scanner } from "@yudiel/react-qr-scanner";
 import client from "@/api/client";
 import CrudPage from "@/components/admin/CrudPage";
+import AdminForm from "@/components/admin/AdminForm";
 import "@/pages/admin/AdminInventory.scss";
 import "@/pages/admin/AdminInventory_responsive.scss";
 
@@ -87,9 +88,7 @@ function AdminInventory() {
       {error && <p className="error-msg">{error}</p>}
 
       {showAdd && (
-        <form className="admin-inv__add-form" onSubmit={handleAddEntry}>
-          <h3>Agregar stock</h3>
-
+        <AdminForm title="Agregar stock" onSubmit={handleAddEntry}>
           <div className="admin-inv__scanner">
             <Scanner
               onScan={(codes) => { const code = codes[0]?.rawValue; if (code) handleBarcodeLookup(code); }}
@@ -105,33 +104,42 @@ function AdminInventory() {
             <button className="admin-inv__scan-btn" type="button" onClick={() => handleBarcodeLookup(barcodeInput)}>Buscar</button>
           </div>
 
-          <label className="field-group" style={{ marginBottom: '0.5rem' }}>
-            <span>Producto</span>
-            <select className="field-input" value={addProductId} onChange={(e) => setAddProductId(e.target.value)} required>
+          <AdminForm.Field label="Producto">
+            <select value={addProductId} onChange={(e) => setAddProductId(e.target.value)} required>
               <option value="">Seleccionar producto...</option>
               {productList.map((p) => <option key={p.id} value={p.id}>{p.name}{p.barcode ? ` (${p.barcode})` : ""}</option>)}
             </select>
-          </label>
+          </AdminForm.Field>
 
           {selectedProduct && <p className="status-msg" style={{ marginBottom: '0.75rem' }}>Producto: <strong>{selectedProduct.name}</strong> {selectedProduct.barcode && <span className="admin-inv__mono">({selectedProduct.barcode})</span>}</p>}
 
-          <label className="field-group"><span>Ubicación</span><select className="field-input" value={newEntry.storage_unit_id} onChange={(e) => setNewEntry((f) => ({ ...f, storage_unit_id: e.target.value }))} required><option value="">Seleccionar...</option>{storageUnits.map((u) => <option key={u.id} value={u.id}>{u.code}</option>)}</select></label>
+          <AdminForm.Field label="Ubicación">
+            <select value={newEntry.storage_unit_id} onChange={(e) => setNewEntry((f) => ({ ...f, storage_unit_id: e.target.value }))} required>
+              <option value="">Seleccionar...</option>
+              {storageUnits.map((u) => <option key={u.id} value={u.id}>{u.code}</option>)}
+            </select>
+          </AdminForm.Field>
 
-          <div className="admin-inv__row">
-            <label className="field-group"><span>Cantidad</span><input className="field-input" type="number" min={1} value={newEntry.quantity} onChange={(e) => setNewEntry((f) => ({ ...f, quantity: e.target.value }))} required /></label>
-            <label className="field-group"><span>Lote</span><input className="field-input" type="text" value={newEntry.batch_code} onChange={(e) => setNewEntry((f) => ({ ...f, batch_code: e.target.value }))} placeholder="Opcional" /></label>
-          </div>
+          <AdminForm.Row>
+            <AdminForm.Field label="Cantidad">
+              <input type="number" min={1} value={newEntry.quantity} onChange={(e) => setNewEntry((f) => ({ ...f, quantity: e.target.value }))} required />
+            </AdminForm.Field>
+            <AdminForm.Field label="Lote">
+              <input type="text" value={newEntry.batch_code} onChange={(e) => setNewEntry((f) => ({ ...f, batch_code: e.target.value }))} placeholder="Opcional" />
+            </AdminForm.Field>
+          </AdminForm.Row>
 
-          <div className="admin-inv__row">
-            <label className="field-group"><span>Stock mínimo</span><input className="field-input" type="number" min={0} value={newEntry.low_stock_threshold} onChange={(e) => setNewEntry((f) => ({ ...f, low_stock_threshold: e.target.value }))} /></label>
-            <label className="field-group"><span>Vencimiento</span><input className="field-input" type="date" value={newEntry.expire_date} onChange={(e) => setNewEntry((f) => ({ ...f, expire_date: e.target.value }))} /></label>
-          </div>
+          <AdminForm.Row>
+            <AdminForm.Field label="Stock mínimo">
+              <input type="number" min={0} value={newEntry.low_stock_threshold} onChange={(e) => setNewEntry((f) => ({ ...f, low_stock_threshold: e.target.value }))} />
+            </AdminForm.Field>
+            <AdminForm.Field label="Vencimiento">
+              <input type="date" value={newEntry.expire_date} onChange={(e) => setNewEntry((f) => ({ ...f, expire_date: e.target.value }))} />
+            </AdminForm.Field>
+          </AdminForm.Row>
 
-          <div className="admin-inv__add-actions">
-            <button type="submit" className="crud__action" disabled={updating === -1 || !addProductId}>{updating === -1 ? "Guardando..." : "Guardar"}</button>
-            <button type="button" className="btn-secondary" onClick={() => setShowAdd(false)}>Cancelar</button>
-          </div>
-        </form>
+          <AdminForm.Actions saving={updating === -1} saveLabel="Guardar" onCancel={() => setShowAdd(false)} />
+        </AdminForm>
       )}
 
       {loading ? <p className="status-msg">Cargando...</p>

@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { Scanner } from "@yudiel/react-qr-scanner";
 import client, { setToken } from "@/api/client";
 import CrudPage from "@/components/admin/CrudPage";
+import AdminForm from "@/components/admin/AdminForm";
 import "@/pages/admin/AdminProducts.scss";
 import "@/pages/admin/AdminProducts_responsive.scss";
 
@@ -169,94 +170,73 @@ function AdminProducts() {
 
   if (action === "crear" || action === "editar") {
     return (
-      <div className="admin-products">
-        <div className="admin-products__header">
-          <h1 className="admin-products__title">
-            {action === "crear" ? "Nuevo producto" : "Editar producto"}
-          </h1>
-          <button className="admin-products__back" onClick={goToList}>
-            Volver
-          </button>
-        </div>
+      <AdminForm
+        title={action === "crear" ? "Nuevo producto" : "Editar producto"}
+        onBack={goToList}
+        onSubmit={handleSave}
+        saving={saving}
+        error={error}
+      >
+        <AdminForm.Field label="Nombre *">
+          <input name="name" value={form.name} onChange={handleFormChange} required />
+        </AdminForm.Field>
 
-        {error && <p className="admin-products__error">{error}</p>}
+        <AdminForm.Field label="Slug">
+          <input name="slug" value={form.slug} onChange={handleFormChange} placeholder="Dejar vacío para auto-generar" />
+        </AdminForm.Field>
 
-        <form className="admin-products__form" onSubmit={handleSave}>
-          <label className="admin-products__field">
-            <span>Nombre *</span>
-            <input name="name" value={form.name} onChange={handleFormChange} required />
-          </label>
+        <AdminForm.Field label="Descripción">
+          <textarea name="description" value={form.description} onChange={handleFormChange} rows={3} />
+        </AdminForm.Field>
 
-          <label className="admin-products__field">
-            <span>Slug</span>
-            <input name="slug" value={form.slug} onChange={handleFormChange} placeholder="Dejar vacío para auto-generar" />
-          </label>
+        <AdminForm.Row>
+          <AdminForm.Field label="Precio *">
+            <input name="price" type="number" step="0.01" value={form.price} onChange={handleFormChange} required />
+          </AdminForm.Field>
 
-          <label className="admin-products__field">
-            <span>Descripción</span>
-            <textarea name="description" value={form.description} onChange={handleFormChange} rows={3} />
-          </label>
-
-          <div className="admin-products__row">
-            <label className="admin-products__field">
-              <span>Precio *</span>
-              <input name="price" type="number" step="0.01" value={form.price} onChange={handleFormChange} required />
-            </label>
-
-            <label className="admin-products__field">
-              <span>Tipo</span>
-              <select name="product_type" value={form.product_type} onChange={handleFormChange}>
-                <option value="simple">Simple</option>
-                <option value="bundle">Bundle</option>
-              </select>
-            </label>
-          </div>
-
-          <label className="admin-products__field">
-            <span>Categoría</span>
-            <select name="category_id" value={form.category_id} onChange={handleFormChange}>
-              <option value="">Sin categoría</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
+          <AdminForm.Field label="Tipo">
+            <select name="product_type" value={form.product_type} onChange={handleFormChange}>
+              <option value="simple">Simple</option>
+              <option value="bundle">Bundle</option>
             </select>
-          </label>
+          </AdminForm.Field>
+        </AdminForm.Row>
 
-          <label className="admin-products__field">
-            <span>Código de barras</span>
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-              <input name="barcode" value={form.barcode} onChange={handleFormChange} placeholder="Escanea o escribe el código" style={{ flex: 1 }} />
-              <button type="button" className="admin-products__save" onClick={() => setShowScan(!showScan)} style={{ whiteSpace: 'nowrap', padding: '0.6rem 0.85rem', fontSize: '0.8rem' }}>
-                {showScan ? "Cerrar" : "📷"}
-              </button>
-            </div>
-          </label>
+        <AdminForm.Field label="Categoría">
+          <select name="category_id" value={form.category_id} onChange={handleFormChange}>
+            <option value="">Sin categoría</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+        </AdminForm.Field>
 
-          {showScan && (
-            <div style={{ maxWidth: '300px', borderRadius: '8px', overflow: 'hidden', marginBottom: '0.5rem' }}>
-              <Scanner
-                onScan={(codes) => {
-                  const code = codes[0]?.rawValue;
-                  if (code) { setForm((f) => ({ ...f, barcode: code })); setShowScan(false); }
-                }}
-                onError={(e) => console.error(e)}
-                formats={['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'code_93', 'codabar', 'itf']}
-                allowMultiple scanDelay={1500} sound
-                styles={{ container: { width: '100%', borderRadius: '8px', overflow: 'hidden' } }}
-              />
-            </div>
-          )}
-
-          <div className="admin-products__actions">
-            <button type="submit" className="admin-products__save" disabled={saving}>
-              {saving ? "Guardando..." : "Guardar"}
-            </button>
-            <button type="button" className="admin-products__cancel" onClick={goToList}>
-              Cancelar
+        <AdminForm.Field label="Código de barras">
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <input name="barcode" value={form.barcode} onChange={handleFormChange} placeholder="Escanea o escribe el código" style={{ flex: 1 }} />
+            <button type="button" className="admin-form__save" onClick={() => setShowScan(!showScan)} style={{ whiteSpace: 'nowrap', padding: '0.6rem 0.85rem', fontSize: '0.8rem' }}>
+              {showScan ? "Cerrar" : "📷"}
             </button>
           </div>
-        </form>
-      </div>
+        </AdminForm.Field>
+
+        {showScan && (
+          <div style={{ maxWidth: '300px', borderRadius: '8px', overflow: 'hidden', marginBottom: '0.5rem' }}>
+            <Scanner
+              onScan={(codes) => {
+                const code = codes[0]?.rawValue;
+                if (code) { setForm((f) => ({ ...f, barcode: code })); setShowScan(false); }
+              }}
+              onError={(e) => console.error(e)}
+              formats={['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'code_93', 'codabar', 'itf']}
+              allowMultiple scanDelay={1500} sound
+              styles={{ container: { width: '100%', borderRadius: '8px', overflow: 'hidden' } }}
+            />
+          </div>
+        )}
+
+        <AdminForm.Actions saving={saving} onCancel={goToList} />
+      </AdminForm>
     );
   }
 

@@ -4,6 +4,7 @@ import client from "@/api/client";
 import CrudPage from "@/components/admin/CrudPage";
 import DataTable from "@/components/admin/DataTable";
 import type { Column } from "@/components/admin/DataTable";
+import AdminForm from "@/components/admin/AdminForm";
 
 type Tag = { id: number; name: string; slug: string };
 
@@ -59,11 +60,17 @@ function AdminTags() {
       {error && <p className="error-msg">{error}</p>}
 
       {creating && (
-        <form className="crud__form" onSubmit={handleCreate}>
-          <input className="field-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre de la etiqueta" required style={{ flex: 1, minWidth: "10rem" }} />
-          <button className="crud__action" type="submit" disabled={saving}>{saving ? "..." : "Guardar"}</button>
-          <button className="btn-secondary" type="button" onClick={closeForm}>Cancelar</button>
-        </form>
+        <AdminForm
+          title="Nueva etiqueta"
+          onSubmit={handleCreate}
+          saving={saving}
+          error={error}
+        >
+          <AdminForm.Field label="Nombre de la etiqueta">
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre de la etiqueta" required />
+          </AdminForm.Field>
+          <AdminForm.Actions saving={saving} saveLabel="Guardar" onCancel={closeForm} />
+        </AdminForm>
       )}
 
       <DataTable columns={columns} data={filtered} keyExtractor={(t) => t.id} loading={loading} emptyMessage={search ? "Sin resultados" : "Sin etiquetas"} />

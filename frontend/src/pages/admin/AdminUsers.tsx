@@ -4,6 +4,7 @@ import client from "@/api/client";
 import CrudPage from "@/components/admin/CrudPage";
 import DataTable from "@/components/admin/DataTable";
 import type { Column } from "@/components/admin/DataTable";
+import AdminForm from "@/components/admin/AdminForm";
 
 type User = { id: number; username: string; email: string; roles: { id: number; name: string }[]; created_at: string; updated_at: string };
 type Role = { id: number; name: string };
@@ -118,29 +119,31 @@ function AdminUsers() {
       action={action ? { label: "Cancelar", onClick: () => setParams({}) } : { label: "+ Nuevo", onClick: () => setParams({ action: "crear" }) }}
       search={{ placeholder: "Buscar por usuario o email...", value: search, onChange: setSearch }}
       form={action ? (
-        <form className="crud-dual__form" onSubmit={handleSave} style={{ width: "100%", maxWidth: "32rem" }}>
-          <h3 className="crud-dual__form-title">{editId ? "Editar usuario" : "Nuevo usuario"}</h3>
-          <div className="crud-dual__form-row">
-            <input className="field-input" value={formUsername} onChange={(e) => setFormUsername(e.target.value)} placeholder="Usuario *" required style={{ flex: 1, minWidth: "10rem" }} />
-            <input className="field-input" type="email" value={formEmail} onChange={(e) => setFormEmail(e.target.value)} placeholder="Email *" required style={{ flex: 1, minWidth: "10rem" }} />
+        <AdminForm title={editId ? "Editar usuario" : "Nuevo usuario"} onSubmit={handleSave} saving={saving}>
+          <AdminForm.Row>
+            <AdminForm.Field label="Usuario *">
+              <input value={formUsername} onChange={(e) => setFormUsername(e.target.value)} required />
+            </AdminForm.Field>
+            <AdminForm.Field label="Email *">
+              <input type="email" value={formEmail} onChange={(e) => setFormEmail(e.target.value)} required />
+            </AdminForm.Field>
+          </AdminForm.Row>
+          <AdminForm.Field label={editId ? "Nueva contraseña (dejar vacío)" : "Contraseña *"}>
+            <input type="password" value={formPassword} onChange={(e) => setFormPassword(e.target.value)} required={!editId} />
+          </AdminForm.Field>
+          <div className="admin-form__field">
+            <span>Roles</span>
+            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginTop: "0.25rem" }}>
+              {roles.map((r) => (
+                <label key={r.id} style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontFamily: "var(--coralie-main-font)", fontSize: "0.85rem", color: "var(--coralie-dark)", cursor: "pointer" }}>
+                  <input type="checkbox" checked={formRoleIds.includes(r.id)} onChange={() => toggleRole(r.id)} />
+                  {r.name}
+                </label>
+              ))}
+            </div>
           </div>
-          <div className="crud-dual__form-row">
-            <input className="field-input" type="password" value={formPassword} onChange={(e) => setFormPassword(e.target.value)} placeholder={editId ? "Nueva contraseña (dejar vacío)" : "Contraseña *"} required={!editId} style={{ flex: 1, minWidth: "10rem" }} />
-          </div>
-          <div className="crud-dual__form-row" style={{ gap: "0.75rem", flexWrap: "wrap" }}>
-            <span style={{ fontFamily: "var(--coralie-contrast-font)", fontSize: "0.85rem", fontWeight: 600, color: "var(--coralie-mid)", width: "100%" }}>Roles</span>
-            {roles.map((r) => (
-              <label key={r.id} style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontFamily: "var(--coralie-main-font)", fontSize: "0.85rem", color: "var(--coralie-dark)", cursor: "pointer" }}>
-                <input type="checkbox" checked={formRoleIds.includes(r.id)} onChange={() => toggleRole(r.id)} />
-                {r.name}
-              </label>
-            ))}
-          </div>
-          <div className="crud-dual__form-row">
-            <button type="submit" className="crud__action" disabled={saving}>{saving ? "..." : editId ? "Actualizar" : "Crear"}</button>
-            <button type="button" className="btn-secondary" onClick={() => setParams({})}>Cancelar</button>
-          </div>
-        </form>
+          <AdminForm.Actions saving={saving} saveLabel={editId ? "Actualizar" : "Crear"} onCancel={() => setParams({})} />
+        </AdminForm>
       ) : undefined}
     >
       {error && <p className="error-msg">{error}</p>}

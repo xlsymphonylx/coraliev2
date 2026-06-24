@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import client from "@/api/client";
 import CrudDual from "@/components/admin/CrudDual";
+import AdminForm from "@/components/admin/AdminForm";
 import "@/pages/admin/AdminWarehouses.scss";
 import "@/pages/admin/AdminWarehouses_responsive.scss";
 
@@ -83,10 +84,12 @@ function AdminWarehouses() {
     >
       {view === "warehouses" && (
         <>
-          <CrudDual.FormCard title={editWId ? "Editar almacén" : "Nuevo almacén"} onSubmit={handleSaveW} saving={saving} onCancel={editWId ? () => setParams({ view: "warehouses" }) : undefined}>
-            <input className="field-input" value={wName} onChange={(e) => setWName(e.target.value)} placeholder="Nombre del almacén" required={!editWId} style={{ flex: 1 }} />
-            <button type="submit" className="crud__action" disabled={saving}>{saving ? "..." : editWId ? "Actualizar" : "+ Crear"}</button>
-          </CrudDual.FormCard>
+          <AdminForm title={editWId ? "Editar almacén" : "Nuevo almacén"} onSubmit={handleSaveW} saving={saving}>
+            <AdminForm.Field label="Nombre del almacén">
+              <input value={wName} onChange={(e) => setWName(e.target.value)} placeholder="Nombre del almacén" required={!editWId} />
+            </AdminForm.Field>
+            <AdminForm.Actions saving={saving} saveLabel={editWId ? "Actualizar" : "+ Crear"} onCancel={editWId ? () => setParams({ view: "warehouses" }) : undefined} />
+          </AdminForm>
 
           {loading ? <p className="status-msg">Cargando...</p>
           : filteredWarehouses.length === 0 ? <p className="status-msg">Sin almacenes</p>
@@ -117,14 +120,18 @@ function AdminWarehouses() {
 
       {view === "units" && (
         <>
-          <CrudDual.FormCard title={editSId ? "Editar ubicación" : "Nueva ubicación"} onSubmit={handleSaveS} saving={saving} onCancel={editSId ? () => setParams({ view: "units" }) : undefined}>
-            <select className="field-input" value={sWarehouse} onChange={(e) => setSWarehouse(e.target.value)} required={!editSId} disabled={!!editSId} style={{ minWidth: '12rem' }}>
-              <option value="">Seleccionar almacén...</option>
-              {filteredWarehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
-            </select>
-            <input className="field-input" value={sCode} onChange={(e) => setSCode(e.target.value)} placeholder="Código (ej: A-01)" required />
-            <button type="submit" className="crud__action" disabled={saving}>{saving ? "..." : editSId ? "Actualizar" : "+ Crear"}</button>
-          </CrudDual.FormCard>
+          <AdminForm title={editSId ? "Editar ubicación" : "Nueva ubicación"} onSubmit={handleSaveS} saving={saving}>
+            <AdminForm.Field label="Almacén">
+              <select value={sWarehouse} onChange={(e) => setSWarehouse(e.target.value)} required={!editSId} disabled={!!editSId}>
+                <option value="">Seleccionar almacén...</option>
+                {filteredWarehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
+              </select>
+            </AdminForm.Field>
+            <AdminForm.Field label="Código">
+              <input value={sCode} onChange={(e) => setSCode(e.target.value)} placeholder="Código (ej: A-01)" required />
+            </AdminForm.Field>
+            <AdminForm.Actions saving={saving} saveLabel={editSId ? "Actualizar" : "+ Crear"} onCancel={editSId ? () => setParams({ view: "units" }) : undefined} />
+          </AdminForm>
 
           <div className="admin-wh__filter">
             <select className="field-input" value={selectedW ?? ""} onChange={(e) => setSelectedW(e.target.value ? Number(e.target.value) : null)}>

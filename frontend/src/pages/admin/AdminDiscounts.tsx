@@ -3,7 +3,7 @@ import client from "@/api/client";
 import CrudDual from "@/components/admin/CrudDual";
 import DataTable from "@/components/admin/DataTable";
 import type { Column } from "@/components/admin/DataTable";
-import "@/pages/admin/AdminDiscounts.scss";
+import AdminForm from "@/components/admin/AdminForm";
 
 type ProdDiscount = { id: number; product_id: number; discount_percent: string; active: boolean; starts_at: string | null; ends_at: string | null; discount_set_id: string | null };
 type VolDiscount = { id: number; product_id: number | null; min_quantity: number; discount_percent: string; description: string | null; starts_at: string | null; ends_at: string | null; active: boolean | null; discount_set_id: string | null };
@@ -126,13 +126,6 @@ function AdminDiscounts() {
   const prodName = (id: number) => products.find((p) => p.id === id)?.name ?? `#${id}`;
   const dsName = (id: string | null) => id ? discountSets.find((d) => d.id === id)?.name ?? "—" : "—";
 
-  const dsSelect = (value: string, onChange: (v: string) => void) => (
-    <select className="field-input" value={value} onChange={(e) => onChange(e.target.value)} style={{ flex: 1, minWidth: "8rem" }}>
-      <option value="">Sin conjunto</option>
-      {discountSets.map((ds) => <option key={ds.id} value={ds.id}>{ds.name}</option>)}
-    </select>
-  );
-
   // ── Product discount columns ──
   const productColumns: Column<ProdDiscount>[] = [
     { header: "ID", render: (d) => d.id },
@@ -189,20 +182,39 @@ function AdminDiscounts() {
       {/* ── Product Discounts ── */}
       {tab === "product" && (
         <>
-          <CrudDual.FormCard title="Nuevo descuento por producto" onSubmit={handleCreate} saving={saving}>
-            <select className="field-input" value={formProductId} onChange={(e) => setFormProductId(e.target.value)} required style={{ flex: 1, minWidth: "10rem" }}>
-              <option value="">Seleccionar producto...</option>
-              {products.map((p) => <option key={p.id} value={p.id}>{p.name}{p.barcode ? ` (${p.barcode})` : ""}</option>)}
-            </select>
-            <input className="field-input" type="number" step="0.01" placeholder="% descuento *" value={formPercent} onChange={(e) => setFormPercent(e.target.value)} required style={{ flex: 1, minWidth: "8rem" }} />
-            <select className="field-input" value={formActive} onChange={(e) => setFormActive(e.target.value)} style={{ flex: 1, minWidth: "8rem" }}>
-              <option value="true">Activo</option><option value="false">Inactivo</option>
-            </select>
-            <input className="field-input" type="date" value={formStart} onChange={(e) => setFormStart(e.target.value)} style={{ flex: 1, minWidth: "8rem" }} />
-            <input className="field-input" type="date" value={formEnd} onChange={(e) => setFormEnd(e.target.value)} style={{ flex: 1, minWidth: "8rem" }} />
-            {dsSelect(formProdDs, setFormProdDs)}
-            <button type="submit" className="crud__action" disabled={saving}>{saving ? "..." : "+ Crear"}</button>
-          </CrudDual.FormCard>
+          <AdminForm title="Nuevo descuento por producto" onSubmit={handleCreate} saving={saving}>
+            <AdminForm.Field label="Producto">
+              <select value={formProductId} onChange={(e) => setFormProductId(e.target.value)} required>
+                <option value="">Seleccionar producto...</option>
+                {products.map((p) => <option key={p.id} value={p.id}>{p.name}{p.barcode ? ` (${p.barcode})` : ""}</option>)}
+              </select>
+            </AdminForm.Field>
+            <AdminForm.Row>
+              <AdminForm.Field label="% descuento *">
+                <input type="number" step="0.01" value={formPercent} onChange={(e) => setFormPercent(e.target.value)} required />
+              </AdminForm.Field>
+              <AdminForm.Field label="Estado">
+                <select value={formActive} onChange={(e) => setFormActive(e.target.value)}>
+                  <option value="true">Activo</option><option value="false">Inactivo</option>
+                </select>
+              </AdminForm.Field>
+            </AdminForm.Row>
+            <AdminForm.Row>
+              <AdminForm.Field label="Inicio">
+                <input type="date" value={formStart} onChange={(e) => setFormStart(e.target.value)} />
+              </AdminForm.Field>
+              <AdminForm.Field label="Fin">
+                <input type="date" value={formEnd} onChange={(e) => setFormEnd(e.target.value)} />
+              </AdminForm.Field>
+              <AdminForm.Field label="Conjunto">
+                <select value={formProdDs} onChange={(e) => setFormProdDs(e.target.value)}>
+                  <option value="">Sin conjunto</option>
+                  {discountSets.map((ds) => <option key={ds.id} value={ds.id}>{ds.name}</option>)}
+                </select>
+              </AdminForm.Field>
+            </AdminForm.Row>
+            <AdminForm.Actions saving={saving} saveLabel="+ Crear" />
+          </AdminForm>
 
           <DataTable
             columns={productColumns}
@@ -217,22 +229,45 @@ function AdminDiscounts() {
       {/* ── Volume Discounts ── */}
       {tab === "volume" && (
         <>
-          <CrudDual.FormCard title="Nuevo descuento por volumen" onSubmit={handleCreate} saving={saving}>
-            <select className="field-input" value={formProductId} onChange={(e) => setFormProductId(e.target.value)} style={{ flex: 1, minWidth: "10rem" }}>
-              <option value="">Todos los productos</option>
-              {products.map((p) => <option key={p.id} value={p.id}>{p.name}{p.barcode ? ` (${p.barcode})` : ""}</option>)}
-            </select>
-            <input className="field-input" type="number" placeholder="Cantidad mínima *" value={formMinQty} onChange={(e) => setFormMinQty(e.target.value)} required style={{ flex: 1, minWidth: "8rem" }} />
-            <input className="field-input" type="number" step="0.01" placeholder="% descuento *" value={formPercent} onChange={(e) => setFormPercent(e.target.value)} required style={{ flex: 1, minWidth: "8rem" }} />
-            <input className="field-input" type="text" placeholder="Descripción" value={formDesc} onChange={(e) => setFormDesc(e.target.value)} style={{ flex: 1, minWidth: "8rem" }} />
-            <select className="field-input" value={formActive} onChange={(e) => setFormActive(e.target.value)} style={{ flex: 1, minWidth: "8rem" }}>
-              <option value="true">Activo</option><option value="false">Inactivo</option>
-            </select>
-            <input className="field-input" type="date" value={formStart} onChange={(e) => setFormStart(e.target.value)} style={{ flex: 1, minWidth: "8rem" }} />
-            <input className="field-input" type="date" value={formEnd} onChange={(e) => setFormEnd(e.target.value)} style={{ flex: 1, minWidth: "8rem" }} />
-            {dsSelect(formVolDs, setFormVolDs)}
-            <button type="submit" className="crud__action" disabled={saving}>{saving ? "..." : "+ Crear"}</button>
-          </CrudDual.FormCard>
+          <AdminForm title="Nuevo descuento por volumen" onSubmit={handleCreate} saving={saving}>
+            <AdminForm.Field label="Producto">
+              <select value={formProductId} onChange={(e) => setFormProductId(e.target.value)}>
+                <option value="">Todos los productos</option>
+                {products.map((p) => <option key={p.id} value={p.id}>{p.name}{p.barcode ? ` (${p.barcode})` : ""}</option>)}
+              </select>
+            </AdminForm.Field>
+            <AdminForm.Row>
+              <AdminForm.Field label="Cantidad mínima *">
+                <input type="number" value={formMinQty} onChange={(e) => setFormMinQty(e.target.value)} required />
+              </AdminForm.Field>
+              <AdminForm.Field label="% descuento *">
+                <input type="number" step="0.01" value={formPercent} onChange={(e) => setFormPercent(e.target.value)} required />
+              </AdminForm.Field>
+            </AdminForm.Row>
+            <AdminForm.Field label="Descripción">
+              <input type="text" value={formDesc} onChange={(e) => setFormDesc(e.target.value)} />
+            </AdminForm.Field>
+            <AdminForm.Row>
+              <AdminForm.Field label="Estado">
+                <select value={formActive} onChange={(e) => setFormActive(e.target.value)}>
+                  <option value="true">Activo</option><option value="false">Inactivo</option>
+                </select>
+              </AdminForm.Field>
+              <AdminForm.Field label="Inicio">
+                <input type="date" value={formStart} onChange={(e) => setFormStart(e.target.value)} />
+              </AdminForm.Field>
+              <AdminForm.Field label="Fin">
+                <input type="date" value={formEnd} onChange={(e) => setFormEnd(e.target.value)} />
+              </AdminForm.Field>
+              <AdminForm.Field label="Conjunto">
+                <select value={formVolDs} onChange={(e) => setFormVolDs(e.target.value)}>
+                  <option value="">Sin conjunto</option>
+                  {discountSets.map((ds) => <option key={ds.id} value={ds.id}>{ds.name}</option>)}
+                </select>
+              </AdminForm.Field>
+            </AdminForm.Row>
+            <AdminForm.Actions saving={saving} saveLabel="+ Crear" />
+          </AdminForm>
 
           <DataTable
             columns={volumeColumns}
@@ -247,22 +282,49 @@ function AdminDiscounts() {
       {/* ── Coupons ── */}
       {tab === "coupon" && (
         <>
-          <CrudDual.FormCard title="Nuevo cupón" onSubmit={handleCreate} saving={saving}>
-            <input className="field-input" type="text" placeholder="Código *" value={formCode} onChange={(e) => setFormCode(e.target.value.toUpperCase())} required style={{ flex: 1, minWidth: "8rem" }} />
-            <select className="field-input" value={formDiscType} onChange={(e) => setFormDiscType(e.target.value)} style={{ flex: 1, minWidth: "8rem" }}>
-              <option value="percentage">Porcentaje</option><option value="fixed">Monto fijo</option>
-            </select>
-            <input className="field-input" type="number" step="0.01" placeholder={formDiscType === "percentage" ? "% descuento *" : "Monto *"} value={formDiscVal} onChange={(e) => setFormDiscVal(e.target.value)} required style={{ flex: 1, minWidth: "8rem" }} />
-            <input className="field-input" type="number" step="0.01" placeholder="Compra mín." value={formMinPurchase} onChange={(e) => setFormMinPurchase(e.target.value)} style={{ flex: 1, minWidth: "8rem" }} />
-            <input className="field-input" type="number" placeholder="Usos máx." value={formMaxUses} onChange={(e) => setFormMaxUses(e.target.value)} style={{ flex: 1, minWidth: "8rem" }} />
-            <select className="field-input" value={formCoupActive} onChange={(e) => setFormCoupActive(e.target.value)} style={{ flex: 1, minWidth: "8rem" }}>
-              <option value="true">Activo</option><option value="false">Inactivo</option>
-            </select>
-            <input className="field-input" type="date" value={formCoupStart} onChange={(e) => setFormCoupStart(e.target.value)} style={{ flex: 1, minWidth: "8rem" }} />
-            <input className="field-input" type="date" value={formCoupEnd} onChange={(e) => setFormCoupEnd(e.target.value)} style={{ flex: 1, minWidth: "8rem" }} />
-            {dsSelect(formCoupDs, setFormCoupDs)}
-            <button type="submit" className="crud__action" disabled={saving}>{saving ? "..." : "+ Crear"}</button>
-          </CrudDual.FormCard>
+          <AdminForm title="Nuevo cupón" onSubmit={handleCreate} saving={saving}>
+            <AdminForm.Row>
+              <AdminForm.Field label="Código *">
+                <input type="text" value={formCode} onChange={(e) => setFormCode(e.target.value.toUpperCase())} required />
+              </AdminForm.Field>
+              <AdminForm.Field label="Tipo">
+                <select value={formDiscType} onChange={(e) => setFormDiscType(e.target.value)}>
+                  <option value="percentage">Porcentaje</option><option value="fixed">Monto fijo</option>
+                </select>
+              </AdminForm.Field>
+              <AdminForm.Field label={formDiscType === "percentage" ? "% descuento *" : "Monto *"}>
+                <input type="number" step="0.01" value={formDiscVal} onChange={(e) => setFormDiscVal(e.target.value)} required />
+              </AdminForm.Field>
+            </AdminForm.Row>
+            <AdminForm.Row>
+              <AdminForm.Field label="Compra mín.">
+                <input type="number" step="0.01" value={formMinPurchase} onChange={(e) => setFormMinPurchase(e.target.value)} />
+              </AdminForm.Field>
+              <AdminForm.Field label="Usos máx.">
+                <input type="number" value={formMaxUses} onChange={(e) => setFormMaxUses(e.target.value)} />
+              </AdminForm.Field>
+              <AdminForm.Field label="Estado">
+                <select value={formCoupActive} onChange={(e) => setFormCoupActive(e.target.value)}>
+                  <option value="true">Activo</option><option value="false">Inactivo</option>
+                </select>
+              </AdminForm.Field>
+            </AdminForm.Row>
+            <AdminForm.Row>
+              <AdminForm.Field label="Inicio">
+                <input type="date" value={formCoupStart} onChange={(e) => setFormCoupStart(e.target.value)} />
+              </AdminForm.Field>
+              <AdminForm.Field label="Fin">
+                <input type="date" value={formCoupEnd} onChange={(e) => setFormCoupEnd(e.target.value)} />
+              </AdminForm.Field>
+              <AdminForm.Field label="Conjunto">
+                <select value={formCoupDs} onChange={(e) => setFormCoupDs(e.target.value)}>
+                  <option value="">Sin conjunto</option>
+                  {discountSets.map((ds) => <option key={ds.id} value={ds.id}>{ds.name}</option>)}
+                </select>
+              </AdminForm.Field>
+            </AdminForm.Row>
+            <AdminForm.Actions saving={saving} saveLabel="+ Crear" />
+          </AdminForm>
 
           <DataTable
             columns={couponColumns}
