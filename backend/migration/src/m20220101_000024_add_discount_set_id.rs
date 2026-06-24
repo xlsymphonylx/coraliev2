@@ -13,7 +13,7 @@ impl MigrationTrait for Migration {
                     .table(ProductDiscounts::Table)
                     .add_column_if_not_exists(
                         ColumnDef::new(ProductDiscounts::DiscountSetId)
-                            .uuid()
+                            .string()
                             .null(),
                     )
                     .to_owned(),
@@ -27,7 +27,7 @@ impl MigrationTrait for Migration {
                     .table(VolumeDiscounts::Table)
                     .add_column_if_not_exists(
                         ColumnDef::new(VolumeDiscounts::DiscountSetId)
-                            .uuid()
+                            .string()
                             .null(),
                     )
                     .to_owned(),
@@ -41,7 +41,7 @@ impl MigrationTrait for Migration {
                     .table(Coupons::Table)
                     .add_column_if_not_exists(
                         ColumnDef::new(Coupons::DiscountSetId)
-                            .uuid()
+                            .string()
                             .null(),
                     )
                     .to_owned(),

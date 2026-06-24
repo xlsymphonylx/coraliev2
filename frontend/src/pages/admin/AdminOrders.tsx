@@ -40,6 +40,8 @@ function AdminOrders() {
 
   useEffect(() => { fetch(); }, []);
 
+  const goToList = () => { setParams({}); setFormName(""); setFormNotes(""); setFormItems([{ product_id: "", quantity: "1" }]); };
+
   const handleStatus = async (id: number, status: string) => {
     try { await client.patch(`/orders/${id}/status`, { status }); fetch(); }
     catch { setError("Error al actualizar estado"); }
@@ -62,7 +64,6 @@ function AdminOrders() {
         notes: formNotes || null,
       });
       setParams({});
-      setFormName(""); setFormNotes(""); setFormItems([{ product_id: "", quantity: "1" }]);
       fetch();
     } catch (err: unknown) { setError((err as any)?.response?.data?.message ?? "Error"); }
     finally { setSaving(false); }
@@ -75,44 +76,46 @@ function AdminOrders() {
     o.status.toLowerCase().includes(search.toLowerCase())
   );
 
+  if (action === "crear") {
+    return (
+      <AdminForm title="Nuevo pedido" onBack={goToList} onSubmit={handleCreate} saving={saving} error={error}>
+        <AdminForm.Field label="Nombre del cliente">
+          <input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Nombre del cliente" />
+        </AdminForm.Field>
+
+        <div className="admin-form__field">
+          <span>Productos</span>
+          {formItems.map((f, i) => (
+            <div key={i} style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginTop: i > 0 ? "0.5rem" : 0 }}>
+              <select value={f.product_id} onChange={(e) => updateFormItem(i, "product_id", e.target.value)} required style={{ flex: 1, minWidth: "12rem" }} className="field-input">
+                <option value="">Seleccionar producto...</option>
+                {products.map((p) => <option key={p.id} value={p.id}>{p.name} — Q{p.price}</option>)}
+              </select>
+              <input type="number" min={1} value={f.quantity} onChange={(e) => updateFormItem(i, "quantity", e.target.value)} required style={{ width: "5rem" }} className="field-input" />
+              {formItems.length > 1 && (
+                <button type="button" className="btn-danger" onClick={() => removeFormItem(i)} style={{ padding: "0.3rem 0.5rem" }}>X</button>
+              )}
+            </div>
+          ))}
+          <button type="button" className="btn-secondary" onClick={addFormItem} style={{ alignSelf: "flex-start", marginTop: "0.5rem" }}>+ Agregar producto</button>
+        </div>
+
+        <AdminForm.Field label="Notas">
+          <textarea value={formNotes} onChange={(e) => setFormNotes(e.target.value)} placeholder="Notas (opcional)" rows={2} style={{ resize: "vertical" }} />
+        </AdminForm.Field>
+
+        <AdminForm.Actions saving={saving} saveLabel="Crear pedido" onCancel={() => { setFormName(""); setFormNotes(""); setFormItems([{ product_id: "", quantity: "1" }]); }} />
+      </AdminForm>
+    );
+  }
+
   return (
     <CrudPage
       title="Pedidos"
-      action={action ? { label: "Cancelar", onClick: () => setParams({}) } : { label: "+ Nuevo", onClick: () => setParams({ action: "crear" }) }}
+      action={{ label: "+ Nuevo", onClick: () => setParams({ action: "crear" }) }}
       search={{ placeholder: "Buscar por ID, cliente o estado...", value: search, onChange: setSearch }}
     >
       {error && <p className="error-msg">{error}</p>}
-
-      {action === "crear" && (
-        <AdminForm title="Nuevo pedido" onSubmit={handleCreate} saving={saving}>
-          <AdminForm.Field label="Nombre del cliente">
-            <input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Nombre del cliente" />
-          </AdminForm.Field>
-
-          <div className="admin-form__field">
-            <span>Productos</span>
-            {formItems.map((f, i) => (
-              <div key={i} style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginTop: i > 0 ? "0.5rem" : 0 }}>
-                <select value={f.product_id} onChange={(e) => updateFormItem(i, "product_id", e.target.value)} required style={{ flex: 1, minWidth: "12rem" }} className="field-input">
-                  <option value="">Seleccionar producto...</option>
-                  {products.map((p) => <option key={p.id} value={p.id}>{p.name} — Q{p.price}</option>)}
-                </select>
-                <input type="number" min={1} value={f.quantity} onChange={(e) => updateFormItem(i, "quantity", e.target.value)} required style={{ width: "5rem" }} className="field-input" />
-                {formItems.length > 1 && (
-                  <button type="button" className="btn-danger" onClick={() => removeFormItem(i)} style={{ padding: "0.3rem 0.5rem" }}>X</button>
-                )}
-              </div>
-            ))}
-            <button type="button" className="btn-secondary" onClick={addFormItem} style={{ alignSelf: "flex-start", marginTop: "0.5rem" }}>+ Agregar producto</button>
-          </div>
-
-          <AdminForm.Field label="Notas">
-            <textarea value={formNotes} onChange={(e) => setFormNotes(e.target.value)} placeholder="Notas (opcional)" rows={2} style={{ resize: "vertical" }} />
-          </AdminForm.Field>
-
-          <AdminForm.Actions saving={saving} saveLabel="Crear pedido" />
-        </AdminForm>
-      )}
 
       {loading ? <p className="status-msg">Cargando...</p>
       : filtered.length === 0 ? <p className="status-msg">{search ? "Sin resultados" : "Sin pedidos"}</p>

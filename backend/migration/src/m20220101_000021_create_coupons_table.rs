@@ -28,8 +28,8 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Coupons::EndsAt).date_time())
                     .col(ColumnDef::new(Coupons::Active).boolean().default(true))
                     .col(ColumnDef::new(Coupons::DeletedAt).date_time())
-                    .col(ColumnDef::new(Coupons::CreatedAt).date_time().extra("DEFAULT NOW()"))
-                    .col(ColumnDef::new(Coupons::UpdatedAt).date_time().extra("DEFAULT NOW()"))
+                    .col(ColumnDef::new(Coupons::CreatedAt).date_time().default(Expr::current_timestamp()))
+                    .col(ColumnDef::new(Coupons::UpdatedAt).date_time().default(Expr::current_timestamp()))
                     .to_owned(),
             )
             .await

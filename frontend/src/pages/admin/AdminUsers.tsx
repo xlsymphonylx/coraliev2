@@ -113,38 +113,47 @@ function AdminUsers() {
     },
   ];
 
+  if (action) {
+    return (
+      <AdminForm
+        title={editId ? "Editar usuario" : "Nuevo usuario"}
+        onBack={() => setParams({})}
+        onSubmit={handleSave}
+        saving={saving}
+        error={error}
+      >
+        <AdminForm.Row>
+          <AdminForm.Field label="Usuario *">
+            <input value={formUsername} onChange={(e) => setFormUsername(e.target.value)} required />
+          </AdminForm.Field>
+          <AdminForm.Field label="Email *">
+            <input type="email" value={formEmail} onChange={(e) => setFormEmail(e.target.value)} required />
+          </AdminForm.Field>
+        </AdminForm.Row>
+        <AdminForm.Field label={editId ? "Nueva contraseña (dejar vacío)" : "Contraseña *"}>
+          <input type="password" value={formPassword} onChange={(e) => setFormPassword(e.target.value)} required={!editId} />
+        </AdminForm.Field>
+        <div className="admin-form__field">
+          <span>Roles</span>
+          <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginTop: "0.25rem" }}>
+            {roles.map((r) => (
+              <label key={r.id} style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontFamily: "var(--coralie-main-font)", fontSize: "0.85rem", color: "var(--coralie-dark)", cursor: "pointer" }}>
+                <input type="checkbox" checked={formRoleIds.includes(r.id)} onChange={() => toggleRole(r.id)} />
+                {r.name}
+              </label>
+            ))}
+          </div>
+        </div>
+        <AdminForm.Actions saving={saving} saveLabel={editId ? "Actualizar" : "Crear"} onCancel={() => { setFormUsername(""); setFormEmail(""); setFormPassword(""); setFormRoleIds([]); }} />
+      </AdminForm>
+    );
+  }
+
   return (
     <CrudPage
       title="Usuarios"
-      action={action ? { label: "Cancelar", onClick: () => setParams({}) } : { label: "+ Nuevo", onClick: () => setParams({ action: "crear" }) }}
+      action={{ label: "+ Nuevo", onClick: () => setParams({ action: "crear" }) }}
       search={{ placeholder: "Buscar por usuario o email...", value: search, onChange: setSearch }}
-      form={action ? (
-        <AdminForm title={editId ? "Editar usuario" : "Nuevo usuario"} onSubmit={handleSave} saving={saving}>
-          <AdminForm.Row>
-            <AdminForm.Field label="Usuario *">
-              <input value={formUsername} onChange={(e) => setFormUsername(e.target.value)} required />
-            </AdminForm.Field>
-            <AdminForm.Field label="Email *">
-              <input type="email" value={formEmail} onChange={(e) => setFormEmail(e.target.value)} required />
-            </AdminForm.Field>
-          </AdminForm.Row>
-          <AdminForm.Field label={editId ? "Nueva contraseña (dejar vacío)" : "Contraseña *"}>
-            <input type="password" value={formPassword} onChange={(e) => setFormPassword(e.target.value)} required={!editId} />
-          </AdminForm.Field>
-          <div className="admin-form__field">
-            <span>Roles</span>
-            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginTop: "0.25rem" }}>
-              {roles.map((r) => (
-                <label key={r.id} style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontFamily: "var(--coralie-main-font)", fontSize: "0.85rem", color: "var(--coralie-dark)", cursor: "pointer" }}>
-                  <input type="checkbox" checked={formRoleIds.includes(r.id)} onChange={() => toggleRole(r.id)} />
-                  {r.name}
-                </label>
-              ))}
-            </div>
-          </div>
-          <AdminForm.Actions saving={saving} saveLabel={editId ? "Actualizar" : "Crear"} onCancel={() => setParams({})} />
-        </AdminForm>
-      ) : undefined}
     >
       {error && <p className="error-msg">{error}</p>}
       <DataTable columns={columns} data={filtered} keyExtractor={(u) => u.id} loading={loading} emptyMessage={search ? "Sin resultados" : "Sin usuarios"} />

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Scanner } from "@yudiel/react-qr-scanner";
 import client from "@/api/client";
 import CrudPage from "@/components/admin/CrudPage";
@@ -11,6 +12,9 @@ type StorageUnit = { id: number; code: string; warehouse_id: number };
 type InventoryEntry = { id: number; product_id: number; storage_unit_id: number; batch_code: string | null; quantity: number; low_stock_threshold: number; entry_date: string; expire_date: string | null };
 
 function AdminInventory() {
+  const [params, setParams] = useSearchParams();
+  const showAdd = params.get("action") === "agregar";
+
   const [entries, setEntries] = useState<InventoryEntry[]>([]);
   const [storageUnits, setStorageUnits] = useState<StorageUnit[]>([]);
   const [products, setProducts] = useState<Map<number, Product>>(new Map());
@@ -19,7 +23,6 @@ function AdminInventory() {
   const [addProductId, setAddProductId] = useState("");
   const [barcodeInput, setBarcodeInput] = useState("");
   const [updating, setUpdating] = useState<number | null>(null);
-  const [showAdd, setShowAdd] = useState(false);
   const [newEntry, setNewEntry] = useState({ storage_unit_id: "", batch_code: "", quantity: "1", low_stock_threshold: "5", expire_date: "" });
   const [search, setSearch] = useState("");
 
@@ -65,7 +68,7 @@ function AdminInventory() {
         quantity: Number(newEntry.quantity), low_stock_threshold: Number(newEntry.low_stock_threshold),
         expire_date: newEntry.expire_date ? new Date(newEntry.expire_date).toISOString() : null,
       });
-      setShowAdd(false); setAddProductId("");
+      setParams({}); setAddProductId("");
       setNewEntry({ storage_unit_id: "", batch_code: "", quantity: "1", low_stock_threshold: "5", expire_date: "" });
       fetchData();
     } catch { setError("Error"); }
@@ -83,64 +86,66 @@ function AdminInventory() {
   const productList = Array.from(products.values());
   const selectedProduct = productList.find((p) => String(p.id) === addProductId);
 
+  if (showAdd) {
+    return (
+      <AdminForm title="Agregar stock" onBack={() => setParams({})} onSubmit={handleAddEntry}>
+        <div className="admin-inv__scanner">
+          <Scanner
+            onScan={(codes) => { const code = codes[0]?.rawValue; if (code) handleBarcodeLookup(code); }}
+            onError={(e) => console.error(e)}
+            formats={['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'code_93', 'codabar', 'itf']}
+            paused={!!addProductId} allowMultiple scanDelay={1500} sound
+            styles={{ container: { width: '100%', borderRadius: '8px', overflow: 'hidden' } }}
+          />
+        </div>
+
+        <div className="admin-inv__scan-row" style={{ marginBottom: '0.75rem' }}>
+          <input type="text" className="admin-inv__scan-input" placeholder="O escribe el código..." value={barcodeInput} onChange={(e) => setBarcodeInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleBarcodeLookup(barcodeInput)} />
+          <button className="admin-inv__scan-btn" type="button" onClick={() => handleBarcodeLookup(barcodeInput)}>Buscar</button>
+        </div>
+
+        <AdminForm.Field label="Producto">
+          <select value={addProductId} onChange={(e) => setAddProductId(e.target.value)} required>
+            <option value="">Seleccionar producto...</option>
+            {productList.map((p) => <option key={p.id} value={p.id}>{p.name}{p.barcode ? ` (${p.barcode})` : ""}</option>)}
+          </select>
+        </AdminForm.Field>
+
+        {selectedProduct && <p className="status-msg" style={{ marginBottom: '0.75rem' }}>Producto: <strong>{selectedProduct.name}</strong> {selectedProduct.barcode && <span className="admin-inv__mono">({selectedProduct.barcode})</span>}</p>}
+
+        <AdminForm.Field label="Ubicación">
+          <select value={newEntry.storage_unit_id} onChange={(e) => setNewEntry((f) => ({ ...f, storage_unit_id: e.target.value }))} required>
+            <option value="">Seleccionar...</option>
+            {storageUnits.map((u) => <option key={u.id} value={u.id}>{u.code}</option>)}
+          </select>
+        </AdminForm.Field>
+
+        <AdminForm.Row>
+          <AdminForm.Field label="Cantidad">
+            <input type="number" min={1} value={newEntry.quantity} onChange={(e) => setNewEntry((f) => ({ ...f, quantity: e.target.value }))} required />
+          </AdminForm.Field>
+          <AdminForm.Field label="Lote">
+            <input type="text" value={newEntry.batch_code} onChange={(e) => setNewEntry((f) => ({ ...f, batch_code: e.target.value }))} placeholder="Opcional" />
+          </AdminForm.Field>
+        </AdminForm.Row>
+
+        <AdminForm.Row>
+          <AdminForm.Field label="Stock mínimo">
+            <input type="number" min={0} value={newEntry.low_stock_threshold} onChange={(e) => setNewEntry((f) => ({ ...f, low_stock_threshold: e.target.value }))} />
+          </AdminForm.Field>
+          <AdminForm.Field label="Vencimiento">
+            <input type="date" value={newEntry.expire_date} onChange={(e) => setNewEntry((f) => ({ ...f, expire_date: e.target.value }))} />
+          </AdminForm.Field>
+        </AdminForm.Row>
+
+        <AdminForm.Actions saving={updating === -1} saveLabel="Guardar" onCancel={() => { setAddProductId(""); setBarcodeInput(""); setNewEntry({ storage_unit_id: "", batch_code: "", quantity: "1", low_stock_threshold: "5", expire_date: "" }); }} />
+      </AdminForm>
+    );
+  }
+
   return (
-    <CrudPage title="Inventario" action={{ label: showAdd ? "Cerrar" : "Agregar stock", onClick: () => { setShowAdd(!showAdd); setAddProductId(""); } }} search={{ placeholder: "Buscar por producto...", value: search, onChange: setSearch }}>
+    <CrudPage title="Inventario" action={{ label: "Agregar stock", onClick: () => { setAddProductId(""); setParams({ action: "agregar" }); } }} search={{ placeholder: "Buscar por producto...", value: search, onChange: setSearch }}>
       {error && <p className="error-msg">{error}</p>}
-
-      {showAdd && (
-        <AdminForm title="Agregar stock" onSubmit={handleAddEntry}>
-          <div className="admin-inv__scanner">
-            <Scanner
-              onScan={(codes) => { const code = codes[0]?.rawValue; if (code) handleBarcodeLookup(code); }}
-              onError={(e) => console.error(e)}
-              formats={['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'code_93', 'codabar', 'itf']}
-              paused={!!addProductId} allowMultiple scanDelay={1500} sound
-              styles={{ container: { width: '100%', borderRadius: '8px', overflow: 'hidden' } }}
-            />
-          </div>
-
-          <div className="admin-inv__scan-row" style={{ marginBottom: '0.75rem' }}>
-            <input type="text" className="admin-inv__scan-input" placeholder="O escribe el código..." value={barcodeInput} onChange={(e) => setBarcodeInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleBarcodeLookup(barcodeInput)} />
-            <button className="admin-inv__scan-btn" type="button" onClick={() => handleBarcodeLookup(barcodeInput)}>Buscar</button>
-          </div>
-
-          <AdminForm.Field label="Producto">
-            <select value={addProductId} onChange={(e) => setAddProductId(e.target.value)} required>
-              <option value="">Seleccionar producto...</option>
-              {productList.map((p) => <option key={p.id} value={p.id}>{p.name}{p.barcode ? ` (${p.barcode})` : ""}</option>)}
-            </select>
-          </AdminForm.Field>
-
-          {selectedProduct && <p className="status-msg" style={{ marginBottom: '0.75rem' }}>Producto: <strong>{selectedProduct.name}</strong> {selectedProduct.barcode && <span className="admin-inv__mono">({selectedProduct.barcode})</span>}</p>}
-
-          <AdminForm.Field label="Ubicación">
-            <select value={newEntry.storage_unit_id} onChange={(e) => setNewEntry((f) => ({ ...f, storage_unit_id: e.target.value }))} required>
-              <option value="">Seleccionar...</option>
-              {storageUnits.map((u) => <option key={u.id} value={u.id}>{u.code}</option>)}
-            </select>
-          </AdminForm.Field>
-
-          <AdminForm.Row>
-            <AdminForm.Field label="Cantidad">
-              <input type="number" min={1} value={newEntry.quantity} onChange={(e) => setNewEntry((f) => ({ ...f, quantity: e.target.value }))} required />
-            </AdminForm.Field>
-            <AdminForm.Field label="Lote">
-              <input type="text" value={newEntry.batch_code} onChange={(e) => setNewEntry((f) => ({ ...f, batch_code: e.target.value }))} placeholder="Opcional" />
-            </AdminForm.Field>
-          </AdminForm.Row>
-
-          <AdminForm.Row>
-            <AdminForm.Field label="Stock mínimo">
-              <input type="number" min={0} value={newEntry.low_stock_threshold} onChange={(e) => setNewEntry((f) => ({ ...f, low_stock_threshold: e.target.value }))} />
-            </AdminForm.Field>
-            <AdminForm.Field label="Vencimiento">
-              <input type="date" value={newEntry.expire_date} onChange={(e) => setNewEntry((f) => ({ ...f, expire_date: e.target.value }))} />
-            </AdminForm.Field>
-          </AdminForm.Row>
-
-          <AdminForm.Actions saving={updating === -1} saveLabel="Guardar" onCancel={() => setShowAdd(false)} />
-        </AdminForm>
-      )}
 
       {loading ? <p className="status-msg">Cargando...</p>
       : filteredEntries.length === 0 ? <p className="status-msg">{search ? "Sin resultados" : "Sin registros de inventario"}</p>

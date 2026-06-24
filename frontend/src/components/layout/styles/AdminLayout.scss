@@ -107,6 +107,9 @@
   }
 
   &__footer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
     padding: 0.75rem;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
   }
@@ -125,6 +128,7 @@
     font-size: 0.9rem;
     font-weight: 500;
     cursor: pointer;
+    text-decoration: none;
     transition: background 0.15s, color 0.15s;
 
     &:hover {

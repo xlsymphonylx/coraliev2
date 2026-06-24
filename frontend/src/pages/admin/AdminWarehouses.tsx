@@ -12,8 +12,10 @@ type StorageUnit = { id: number; warehouse_id: number; code: string };
 function AdminWarehouses() {
   const [params, setParams] = useSearchParams();
   const view = params.get("view") || "warehouses";
-  const editWId = params.get("editW");
-  const editSId = params.get("editS");
+  const action = params.get("action");
+  const editId = action === "editar" ? params.get("id") : null;
+  const isWarehouseForm = view === "warehouses" && action;
+  const isUnitForm = view === "units" && action;
 
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [units, setUnits] = useState<StorageUnit[]>([]);
@@ -39,18 +41,20 @@ function AdminWarehouses() {
   useEffect(() => { fetch(); }, []);
 
   useEffect(() => {
-    if (editWId) { const w = warehouses.find((x) => x.id === Number(editWId)); setWName(w?.name ?? ""); }
-    else { setWName(""); }
-    if (editSId) { const s = units.find((x) => x.id === Number(editSId)); setSCode(s?.code ?? ""); setSWarehouse(s ? String(s.warehouse_id) : ""); }
-    else { setSCode(""); setSWarehouse(""); }
-  }, [editWId, editSId, warehouses, units]);
+    if (isWarehouseForm && editId) { const w = warehouses.find((x) => x.id === Number(editId)); setWName(w?.name ?? ""); }
+    else if (!isWarehouseForm) { setWName(""); }
+    if (isUnitForm && editId) { const s = units.find((x) => x.id === Number(editId)); setSCode(s?.code ?? ""); setSWarehouse(s ? String(s.warehouse_id) : ""); }
+    else if (!isUnitForm) { setSCode(""); setSWarehouse(""); }
+  }, [action, editId, view, warehouses, units]);
+
+  const goToList = () => setParams({ view });
 
   const handleSaveW = async (e: React.FormEvent) => {
     e.preventDefault(); setSaving(true); setError(null);
     try {
-      if (editWId) await client.patch(`/warehouses/${editWId}`, { name: wName });
+      if (editId) await client.patch(`/warehouses/${editId}`, { name: wName });
       else await client.post("/warehouses", { name: wName });
-      setParams({ view: "warehouses" }); fetch();
+      goToList(); fetch();
     } catch (err: unknown) { setError((err as any)?.response?.data?.message ?? "Error"); }
     finally { setSaving(false); }
   };
@@ -58,9 +62,9 @@ function AdminWarehouses() {
   const handleSaveS = async (e: React.FormEvent) => {
     e.preventDefault(); setSaving(true); setError(null);
     try {
-      if (editSId) await client.patch(`/storage-units/${editSId}`, { code: sCode });
+      if (editId) await client.patch(`/storage-units/${editId}`, { code: sCode });
       else await client.post("/storage-units", { warehouse_id: Number(sWarehouse), code: sCode });
-      setParams({ view: "units" }); fetch();
+      goToList(); fetch();
     } catch (err: unknown) { setError((err as any)?.response?.data?.message ?? "Error"); }
     finally { setSaving(false); }
   };
@@ -71,6 +75,48 @@ function AdminWarehouses() {
   const filteredUnits = (selectedW ? units.filter((u) => u.warehouse_id === selectedW) : units).filter((u) =>
     !search || u.code.toLowerCase().includes(search.toLowerCase())
   );
+
+  // ── Warehouse form (full page) ──
+  if (isWarehouseForm) {
+    return (
+      <AdminForm
+        title={editId ? "Editar almacén" : "Nuevo almacén"}
+        onBack={goToList}
+        onSubmit={handleSaveW}
+        saving={saving}
+        error={error}
+      >
+        <AdminForm.Field label="Nombre del almacén">
+          <input value={wName} onChange={(e) => setWName(e.target.value)} placeholder="Nombre del almacén" required={!editId} />
+        </AdminForm.Field>
+        <AdminForm.Actions saving={saving} saveLabel={editId ? "Actualizar" : "+ Crear"} onCancel={() => setWName("")} />
+      </AdminForm>
+    );
+  }
+
+  // ── Storage unit form (full page) ──
+  if (isUnitForm) {
+    return (
+      <AdminForm
+        title={editId ? "Editar ubicación" : "Nueva ubicación"}
+        onBack={goToList}
+        onSubmit={handleSaveS}
+        saving={saving}
+        error={error}
+      >
+        <AdminForm.Field label="Almacén">
+          <select value={sWarehouse} onChange={(e) => setSWarehouse(e.target.value)} required={!editId} disabled={!!editId}>
+            <option value="">Seleccionar almacén...</option>
+            {filteredWarehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
+          </select>
+        </AdminForm.Field>
+        <AdminForm.Field label="Código">
+          <input value={sCode} onChange={(e) => setSCode(e.target.value)} placeholder="Código (ej: A-01)" required />
+        </AdminForm.Field>
+        <AdminForm.Actions saving={saving} saveLabel={editId ? "Actualizar" : "+ Crear"} onCancel={() => { setSCode(""); setSWarehouse(""); }} />
+      </AdminForm>
+    );
+  }
 
   return (
     <CrudDual
@@ -84,13 +130,6 @@ function AdminWarehouses() {
     >
       {view === "warehouses" && (
         <>
-          <AdminForm title={editWId ? "Editar almacén" : "Nuevo almacén"} onSubmit={handleSaveW} saving={saving}>
-            <AdminForm.Field label="Nombre del almacén">
-              <input value={wName} onChange={(e) => setWName(e.target.value)} placeholder="Nombre del almacén" required={!editWId} />
-            </AdminForm.Field>
-            <AdminForm.Actions saving={saving} saveLabel={editWId ? "Actualizar" : "+ Crear"} onCancel={editWId ? () => setParams({ view: "warehouses" }) : undefined} />
-          </AdminForm>
-
           {loading ? <p className="status-msg">Cargando...</p>
           : filteredWarehouses.length === 0 ? <p className="status-msg">Sin almacenes</p>
           : (
@@ -103,7 +142,7 @@ function AdminWarehouses() {
                       <td>{w.id}</td><td>{w.name}</td>
                       <td>{units.filter((u) => u.warehouse_id === w.id).length}</td>
                       <td className="cell-actions">
-                        <button onClick={() => setParams({ view: "warehouses", editW: String(w.id) })}>Editar</button>
+                        <button onClick={() => setParams({ view: "warehouses", action: "editar", id: String(w.id) })}>Editar</button>
                         <button className="btn-danger" onClick={async () => {
                           if (!confirm("¿Eliminar almacén?")) return;
                           try { await client.delete(`/warehouses/${w.id}`); fetch(); } catch { setError("Error"); }
@@ -115,24 +154,15 @@ function AdminWarehouses() {
               </table>
             </div>
           )}
+
+          <div style={{ marginTop: "1rem" }}>
+            <button className="crud__action" onClick={() => setParams({ view: "warehouses", action: "crear" })}>+ Nuevo almacén</button>
+          </div>
         </>
       )}
 
       {view === "units" && (
         <>
-          <AdminForm title={editSId ? "Editar ubicación" : "Nueva ubicación"} onSubmit={handleSaveS} saving={saving}>
-            <AdminForm.Field label="Almacén">
-              <select value={sWarehouse} onChange={(e) => setSWarehouse(e.target.value)} required={!editSId} disabled={!!editSId}>
-                <option value="">Seleccionar almacén...</option>
-                {filteredWarehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
-              </select>
-            </AdminForm.Field>
-            <AdminForm.Field label="Código">
-              <input value={sCode} onChange={(e) => setSCode(e.target.value)} placeholder="Código (ej: A-01)" required />
-            </AdminForm.Field>
-            <AdminForm.Actions saving={saving} saveLabel={editSId ? "Actualizar" : "+ Crear"} onCancel={editSId ? () => setParams({ view: "units" }) : undefined} />
-          </AdminForm>
-
           <div className="admin-wh__filter">
             <select className="field-input" value={selectedW ?? ""} onChange={(e) => setSelectedW(e.target.value ? Number(e.target.value) : null)}>
               <option value="">Todos los almacenes</option>
@@ -152,7 +182,7 @@ function AdminWarehouses() {
                       <td>{u.id}</td><td>{u.code}</td>
                       <td>{warehouses.find((w) => w.id === u.warehouse_id)?.name ?? "—"}</td>
                       <td className="cell-actions">
-                        <button onClick={() => setParams({ view: "units", editS: String(u.id) })}>Editar</button>
+                        <button onClick={() => setParams({ view: "units", action: "editar", id: String(u.id) })}>Editar</button>
                         <button className="btn-danger" onClick={async () => {
                           if (!confirm("¿Eliminar ubicación?")) return;
                           try { await client.delete(`/storage-units/${u.id}`); fetch(); } catch { setError("Error"); }
@@ -164,6 +194,10 @@ function AdminWarehouses() {
               </table>
             </div>
           )}
+
+          <div style={{ marginTop: "1rem" }}>
+            <button className="crud__action" onClick={() => setParams({ view: "units", action: "crear" })}>+ Nueva ubicación</button>
+          </div>
         </>
       )}
     </CrudDual>

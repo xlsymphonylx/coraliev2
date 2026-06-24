@@ -95,7 +95,7 @@ function AdminCategories() {
           </select>
         </AdminForm.Field>
 
-        <AdminForm.Actions saving={saving} onCancel={goList} />
+        <AdminForm.Actions saving={saving} onCancel={() => { setName(""); setSlug(""); setDesc(""); setParentId(""); }} />
       </AdminForm>
     );
   }

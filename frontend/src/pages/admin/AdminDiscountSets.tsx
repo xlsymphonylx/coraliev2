@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import client from "@/api/client";
 import CrudPage from "@/components/admin/CrudPage";
 import DataTable from "@/components/admin/DataTable";
@@ -8,12 +9,15 @@ import AdminForm from "@/components/admin/AdminForm";
 type DiscountSet = { id: string; name: string; slug: string; description: string | null; active: boolean | null; starts_at: string | null; ends_at: string | null };
 
 function AdminDiscountSets() {
+  const [params, setParams] = useSearchParams();
+  const action = params.get("action");
+  const editId = params.get("id");
+
   const [sets, setSets] = useState<DiscountSet[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [showForm, setShowForm] = useState(false);
 
   const [formName, setFormName] = useState("");
   const [formSlug, setFormSlug] = useState("");
@@ -21,9 +25,6 @@ function AdminDiscountSets() {
   const [formActive, setFormActive] = useState("true");
   const [formStart, setFormStart] = useState("");
   const [formEnd, setFormEnd] = useState("");
-
-  // Edit state
-  const [editId, setEditId] = useState<string | null>(null);
 
   const fetch = async () => {
     setLoading(true);
@@ -38,19 +39,20 @@ function AdminDiscountSets() {
 
   const resetForm = () => {
     setFormName(""); setFormSlug(""); setFormDesc(""); setFormActive("true");
-    setFormStart(""); setFormEnd(""); setEditId(null);
+    setFormStart(""); setFormEnd("");
   };
 
   const openEdit = (d: DiscountSet) => {
-    setEditId(d.id);
     setFormName(d.name);
     setFormSlug(d.slug);
     setFormDesc(d.description ?? "");
     setFormActive(d.active ? "true" : "false");
     setFormStart(d.starts_at ? d.starts_at.substring(0, 10) : "");
     setFormEnd(d.ends_at ? d.ends_at.substring(0, 10) : "");
-    setShowForm(true);
+    setParams({ action: "editar", id: d.id });
   };
+
+  const goToList = () => { resetForm(); setParams({}); };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); setSaving(true); setError(null);
@@ -68,7 +70,7 @@ function AdminDiscountSets() {
       } else {
         await client.post("/discount-sets", body);
       }
-      resetForm(); setShowForm(false); fetch();
+      goToList(); fetch();
     } catch (err: unknown) { setError((err as any)?.response?.data?.message ?? "Error"); }
     finally { setSaving(false); }
   };
@@ -100,41 +102,49 @@ function AdminDiscountSets() {
     },
   ];
 
+  if (action) {
+    return (
+      <AdminForm
+        title={editId ? "Editar conjunto" : "Nuevo conjunto"}
+        onBack={goToList}
+        onSubmit={handleSubmit}
+        saving={saving}
+        error={error}
+      >
+        <AdminForm.Field label="Nombre *">
+          <input type="text" value={formName} onChange={(e) => setFormName(e.target.value)} required />
+        </AdminForm.Field>
+        <AdminForm.Field label="Slug *">
+          <input type="text" value={formSlug} onChange={(e) => setFormSlug(e.target.value)} required />
+        </AdminForm.Field>
+        <AdminForm.Field label="Descripción">
+          <input type="text" value={formDesc} onChange={(e) => setFormDesc(e.target.value)} />
+        </AdminForm.Field>
+        <AdminForm.Row>
+          <AdminForm.Field label="Estado">
+            <select value={formActive} onChange={(e) => setFormActive(e.target.value)}>
+              <option value="true">Activo</option><option value="false">Inactivo</option>
+            </select>
+          </AdminForm.Field>
+          <AdminForm.Field label="Inicio">
+            <input type="date" value={formStart} onChange={(e) => setFormStart(e.target.value)} />
+          </AdminForm.Field>
+          <AdminForm.Field label="Fin">
+            <input type="date" value={formEnd} onChange={(e) => setFormEnd(e.target.value)} />
+          </AdminForm.Field>
+        </AdminForm.Row>
+        <AdminForm.Actions saving={saving} saveLabel={editId ? "Guardar" : "+ Crear"} onCancel={resetForm} />
+      </AdminForm>
+    );
+  }
+
   return (
     <CrudPage
       title="Conjuntos de descuentos"
-      action={{ label: showForm ? "Cancelar" : "+ Nuevo conjunto", onClick: () => { setShowForm(!showForm); resetForm(); } }}
+      action={{ label: "+ Nuevo conjunto", onClick: () => setParams({ action: "crear" }) }}
       search={{ placeholder: "Buscar por nombre o slug...", value: search, onChange: setSearch }}
     >
       {error && <p className="error-msg">{error}</p>}
-
-      {showForm && (
-        <AdminForm title={editId ? "Editar conjunto" : "Nuevo conjunto"} onSubmit={handleSubmit} saving={saving}>
-          <AdminForm.Field label="Nombre *">
-            <input type="text" value={formName} onChange={(e) => setFormName(e.target.value)} required />
-          </AdminForm.Field>
-          <AdminForm.Field label="Slug *">
-            <input type="text" value={formSlug} onChange={(e) => setFormSlug(e.target.value)} required />
-          </AdminForm.Field>
-          <AdminForm.Field label="Descripción">
-            <input type="text" value={formDesc} onChange={(e) => setFormDesc(e.target.value)} />
-          </AdminForm.Field>
-          <AdminForm.Row>
-            <AdminForm.Field label="Estado">
-              <select value={formActive} onChange={(e) => setFormActive(e.target.value)}>
-                <option value="true">Activo</option><option value="false">Inactivo</option>
-              </select>
-            </AdminForm.Field>
-            <AdminForm.Field label="Inicio">
-              <input type="date" value={formStart} onChange={(e) => setFormStart(e.target.value)} />
-            </AdminForm.Field>
-            <AdminForm.Field label="Fin">
-              <input type="date" value={formEnd} onChange={(e) => setFormEnd(e.target.value)} />
-            </AdminForm.Field>
-          </AdminForm.Row>
-          <AdminForm.Actions saving={saving} saveLabel={editId ? "Guardar" : "+ Crear"} onCancel={() => { setShowForm(false); resetForm(); }} />
-        </AdminForm>
-      )}
 
       <DataTable
         columns={columns}

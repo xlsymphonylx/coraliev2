@@ -235,7 +235,7 @@ function AdminProducts() {
           </div>
         )}
 
-        <AdminForm.Actions saving={saving} onCancel={goToList} />
+        <AdminForm.Actions saving={saving} onCancel={() => setForm(emptyForm)} />
       </AdminForm>
     );
   }

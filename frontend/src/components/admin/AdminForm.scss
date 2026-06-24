@@ -1,12 +1,34 @@
 @use "@/base.scss" as *;
 
 .admin-form {
-  &__header { @extend .page-header; }
-  &__title { @extend .page-title; }
-  &__save { @extend .btn-primary; background: var(--coralie-spicy); color: var(--coralie-white); border: none; }
-  &__back,
-  &__cancel { @extend .btn-secondary; }
-  &__error { @extend .error-msg; }
+  &__header {
+    justify-content: center;
+    margin: 2rem;
+    @extend .page-header;
+  }
+  &__title {
+    @extend .page-title;
+  }
+  &__save {
+    @extend .btn-primary;
+    background: var(--coralie-spicy);
+    color: var(--coralie-white);
+    border: none;
+  }
+  &__back {
+    @extend .btn-primary;
+    background: var(--coralie-spicy);
+    color: var(--coralie-white);
+    border: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+  &__cancel {
+    @extend .btn-secondary;
+  }
+  &__error {
+    @extend .error-msg;
+  }
 
   // Card variant (inline form, no page header)
   &__card-title {
@@ -22,6 +44,7 @@
   &__form {
     display: flex;
     flex-direction: column;
+    margin: auto;
     gap: 1rem;
     max-width: 36rem;
     background: var(--coralie-white);
@@ -35,10 +58,22 @@
 
     input,
     select,
-    textarea { @extend .field-input; }
-    textarea { resize: vertical; }
+    textarea {
+      @extend .field-input;
+    }
+    textarea {
+      resize: vertical;
+    }
   }
 
-  &__row { display: flex; gap: 1rem; }
-  &__actions { display: flex; gap: 0.75rem; margin-top: 0.5rem; }
+  &__row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  &__actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
 }

@@ -1,6 +1,7 @@
 use sea_orm::DatabaseConnection;
 
 pub mod admin;
+pub mod categories;
 
 pub async fn run(db: &DatabaseConnection) {
     let mut ran = 0u32;
@@ -23,6 +24,7 @@ pub async fn run(db: &DatabaseConnection) {
     }
 
     run_seeder!(admin);
+    run_seeder!(categories);
 
     println!("seeders: {} ran, {} skipped", ran, skipped);
 }

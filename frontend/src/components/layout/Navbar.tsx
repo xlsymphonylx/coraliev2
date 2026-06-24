@@ -1,12 +1,10 @@
-import { useEffect, useState } from "react";
-import { HomeIcon, LogIn, LogOut, Menu, MessageCircle, Package, ShieldCheck, UserPlus, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { LogIn, LogOut, Menu, ShieldCheck, UserPlus, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { clearToken } from "@/api/client";
 import { fetchCategories, buildCategoryTree } from "@/api/categories";
 import type { CategoryTreeNode } from "@/api/categories";
 import UserDropdown from "./UserDropdown";
-import NavDropdown from "./NavDropdown";
-import type { DropdownItem } from "./NavDropdown";
 import "@/components/layout/styles/Navbar.scss";
 import "@/components/layout/styles/Navbar_responsive.scss";
 
@@ -24,8 +22,13 @@ function Navbar({ isAuthenticated, isAdmin, username }: NavbarProps) {
   useEffect(() => {
     fetchCategories()
       .then((cats) => setCatTree(buildCategoryTree(cats)))
-      .catch(() => {}); // non-critical, navbar still works
+      .catch(() => {});
   }, []);
+
+  const topCategories = useMemo(
+    () => catTree.map((node) => ({ label: node.name, slug: node.slug })),
+    [catTree],
+  );
 
   const handleLogout = () => {
     clearToken();
@@ -33,44 +36,32 @@ function Navbar({ isAuthenticated, isAdmin, username }: NavbarProps) {
     navigate("/login", { replace: true });
   };
 
-  /** Convert category tree nodes into NavDropdown items */
-  function treeToDropdownItems(nodes: CategoryTreeNode[]): DropdownItem[] {
-    const items: DropdownItem[] = nodes.map((node) => ({
-      label: node.name,
-      to: `/productos?category=${node.slug}`,
-      children: node.children.length > 0 ? treeToDropdownItems(node.children) : undefined,
-    }));
-    // Add "Ver todos" at the end
-    items.push({ label: "Ver todos", to: "/productos" });
-    return items;
-  }
-
   return (
     <nav className="navbar">
-      <div className="navbar__brand">
-        <img src="logo.png" alt="" className="navbar__brand-file" />
-      </div>
-
       <button className="navbar__hamburger" onClick={() => setMenuOpen(!menuOpen)}>
         {menuOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
 
+      <Link to="/" className="navbar__brand">
+        <img src="logo.png" alt="Coralie" className="navbar__brand-file" />
+      </Link>
+
       <div className={`navbar__links${menuOpen ? " navbar__links--open" : ""}`}>
-        <Link to="/" className="navbar__link" onClick={() => setMenuOpen(false)}>
-          <HomeIcon />
-          Inicio
-        </Link>
-        <NavDropdown
-          icon={<Package />}
-          label="Productos"
-          menuOpen={menuOpen}
-          onNavigate={() => setMenuOpen(false)}
-          items={treeToDropdownItems(catTree)}
-        />
-        <Link to="/" className="navbar__link" onClick={() => setMenuOpen(false)}>
-          <MessageCircle />
-          Contacto
-        </Link>
+        {/* Category links — inline scrollable on desktop, 5-per-row grid in hamburger */}
+        <div className="navbar__cats">
+          {topCategories.map((cat) => (
+            <Link
+              key={cat.slug}
+              to={`/productos?category=${cat.slug}`}
+              className="navbar__link"
+              onClick={() => setMenuOpen(false)}
+            >
+              {cat.label}
+            </Link>
+          ))}
+        </div>
+
+        {/* Mobile-only auth actions */}
         {!isAuthenticated ? (
           <div className="navbar__mobile-auth">
             <Link to="/login" className="navbar__link" onClick={() => setMenuOpen(false)}>

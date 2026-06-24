@@ -9,14 +9,15 @@ export type DropdownItem = {
 };
 
 type NavDropdownProps = {
-  icon: ReactNode;
+  icon?: ReactNode;
   label: string;
   items: DropdownItem[];
   menuOpen: boolean;
   onNavigate: () => void;
+  className?: string;
 };
 
-function NavDropdown({ icon, label, items, menuOpen, onNavigate }: NavDropdownProps) {
+function NavDropdown({ icon, label, items, menuOpen, onNavigate, className }: NavDropdownProps) {
   const [open, setOpen] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -35,7 +36,7 @@ function NavDropdown({ icon, label, items, menuOpen, onNavigate }: NavDropdownPr
 
   return (
     <div
-      className={`navbar__dropdown${open ? " navbar__dropdown--open" : ""}`}
+      className={`navbar__dropdown${open ? " navbar__dropdown--open" : ""}${className ? ` ${className}` : ""}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >

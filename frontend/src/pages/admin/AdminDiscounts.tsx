@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import client from "@/api/client";
 import CrudDual from "@/components/admin/CrudDual";
 import DataTable from "@/components/admin/DataTable";
@@ -12,7 +13,10 @@ type Product = { id: number; name: string; barcode: string | null };
 type DiscountSet = { id: string; name: string; slug: string };
 
 function AdminDiscounts() {
-  const [tab, setTab] = useState<"product" | "volume" | "coupon">("product");
+  const [params, setParams] = useSearchParams();
+  const tab = params.get("tab") || "product";
+  const action = params.get("action");
+  const isCreating = action === "crear";
   const [pd, setPd] = useState<ProdDiscount[]>([]);
   const [vd, setVd] = useState<VolDiscount[]>([]);
   const [cd, setCd] = useState<Coupon[]>([]);
@@ -66,6 +70,8 @@ function AdminDiscounts() {
   useEffect(() => { fetch(); }, []);
   useEffect(() => { resetForm(); }, [tab]);
 
+  const goToList = () => setParams({ tab });
+
   const resetForm = () => {
     setFormProductId(""); setFormPercent(""); setFormActive("true");
     setFormStart(""); setFormEnd(""); setFormProdDs("");
@@ -109,7 +115,7 @@ function AdminDiscounts() {
           discount_set_id: formCoupDs || null,
         });
       }
-      resetForm(); fetch();
+      resetForm(); fetch(); setParams({ tab });
     } catch (err: unknown) { setError((err as any)?.response?.data?.message ?? "Error"); }
     finally { setSaving(false); }
   };
@@ -168,171 +174,172 @@ function AdminDiscounts() {
     { header: "Acción", render: (d) => <button className="btn-danger" onClick={() => handleDelete("coupon", d.id)}>Eliminar</button> },
   ];
 
+  // ── Product discount form (full page) ──
+  if (isCreating && tab === "product") {
+    return (
+      <AdminForm title="Nuevo descuento por producto" onBack={goToList} onSubmit={handleCreate} saving={saving} error={error}>
+        <AdminForm.Field label="Producto">
+          <select value={formProductId} onChange={(e) => setFormProductId(e.target.value)} required>
+            <option value="">Seleccionar producto...</option>
+            {products.map((p) => <option key={p.id} value={p.id}>{p.name}{p.barcode ? ` (${p.barcode})` : ""}</option>)}
+          </select>
+        </AdminForm.Field>
+        <AdminForm.Row>
+          <AdminForm.Field label="% descuento *">
+            <input type="number" step="0.01" value={formPercent} onChange={(e) => setFormPercent(e.target.value)} required />
+          </AdminForm.Field>
+          <AdminForm.Field label="Estado">
+            <select value={formActive} onChange={(e) => setFormActive(e.target.value)}>
+              <option value="true">Activo</option><option value="false">Inactivo</option>
+            </select>
+          </AdminForm.Field>
+        </AdminForm.Row>
+        <AdminForm.Row>
+          <AdminForm.Field label="Inicio">
+            <input type="date" value={formStart} onChange={(e) => setFormStart(e.target.value)} />
+          </AdminForm.Field>
+          <AdminForm.Field label="Fin">
+            <input type="date" value={formEnd} onChange={(e) => setFormEnd(e.target.value)} />
+          </AdminForm.Field>
+          <AdminForm.Field label="Conjunto">
+            <select value={formProdDs} onChange={(e) => setFormProdDs(e.target.value)}>
+              <option value="">Sin conjunto</option>
+              {discountSets.map((ds) => <option key={ds.id} value={ds.id}>{ds.name}</option>)}
+            </select>
+          </AdminForm.Field>
+        </AdminForm.Row>
+        <AdminForm.Actions saving={saving} saveLabel="+ Crear" onCancel={resetForm} />
+      </AdminForm>
+    );
+  }
+
+  // ── Volume discount form (full page) ──
+  if (isCreating && tab === "volume") {
+    return (
+      <AdminForm title="Nuevo descuento por volumen" onBack={goToList} onSubmit={handleCreate} saving={saving} error={error}>
+        <AdminForm.Field label="Producto">
+          <select value={formProductId} onChange={(e) => setFormProductId(e.target.value)}>
+            <option value="">Todos los productos</option>
+            {products.map((p) => <option key={p.id} value={p.id}>{p.name}{p.barcode ? ` (${p.barcode})` : ""}</option>)}
+          </select>
+        </AdminForm.Field>
+        <AdminForm.Row>
+          <AdminForm.Field label="Cantidad mínima *">
+            <input type="number" value={formMinQty} onChange={(e) => setFormMinQty(e.target.value)} required />
+          </AdminForm.Field>
+          <AdminForm.Field label="% descuento *">
+            <input type="number" step="0.01" value={formPercent} onChange={(e) => setFormPercent(e.target.value)} required />
+          </AdminForm.Field>
+        </AdminForm.Row>
+        <AdminForm.Field label="Descripción">
+          <input type="text" value={formDesc} onChange={(e) => setFormDesc(e.target.value)} />
+        </AdminForm.Field>
+        <AdminForm.Row>
+          <AdminForm.Field label="Estado">
+            <select value={formActive} onChange={(e) => setFormActive(e.target.value)}>
+              <option value="true">Activo</option><option value="false">Inactivo</option>
+            </select>
+          </AdminForm.Field>
+          <AdminForm.Field label="Inicio">
+            <input type="date" value={formStart} onChange={(e) => setFormStart(e.target.value)} />
+          </AdminForm.Field>
+          <AdminForm.Field label="Fin">
+            <input type="date" value={formEnd} onChange={(e) => setFormEnd(e.target.value)} />
+          </AdminForm.Field>
+          <AdminForm.Field label="Conjunto">
+            <select value={formVolDs} onChange={(e) => setFormVolDs(e.target.value)}>
+              <option value="">Sin conjunto</option>
+              {discountSets.map((ds) => <option key={ds.id} value={ds.id}>{ds.name}</option>)}
+            </select>
+          </AdminForm.Field>
+        </AdminForm.Row>
+        <AdminForm.Actions saving={saving} saveLabel="+ Crear" onCancel={resetForm} />
+      </AdminForm>
+    );
+  }
+
+  // ── Coupon form (full page) ──
+  if (isCreating && tab === "coupon") {
+    return (
+      <AdminForm title="Nuevo cupón" onBack={goToList} onSubmit={handleCreate} saving={saving} error={error}>
+        <AdminForm.Row>
+          <AdminForm.Field label="Código *">
+            <input type="text" value={formCode} onChange={(e) => setFormCode(e.target.value.toUpperCase())} required />
+          </AdminForm.Field>
+          <AdminForm.Field label="Tipo">
+            <select value={formDiscType} onChange={(e) => setFormDiscType(e.target.value)}>
+              <option value="percentage">Porcentaje</option><option value="fixed">Monto fijo</option>
+            </select>
+          </AdminForm.Field>
+          <AdminForm.Field label={formDiscType === "percentage" ? "% descuento *" : "Monto *"}>
+            <input type="number" step="0.01" value={formDiscVal} onChange={(e) => setFormDiscVal(e.target.value)} required />
+          </AdminForm.Field>
+        </AdminForm.Row>
+        <AdminForm.Row>
+          <AdminForm.Field label="Compra mín.">
+            <input type="number" step="0.01" value={formMinPurchase} onChange={(e) => setFormMinPurchase(e.target.value)} />
+          </AdminForm.Field>
+          <AdminForm.Field label="Usos máx.">
+            <input type="number" value={formMaxUses} onChange={(e) => setFormMaxUses(e.target.value)} />
+          </AdminForm.Field>
+          <AdminForm.Field label="Estado">
+            <select value={formCoupActive} onChange={(e) => setFormCoupActive(e.target.value)}>
+              <option value="true">Activo</option><option value="false">Inactivo</option>
+            </select>
+          </AdminForm.Field>
+        </AdminForm.Row>
+        <AdminForm.Row>
+          <AdminForm.Field label="Inicio">
+            <input type="date" value={formCoupStart} onChange={(e) => setFormCoupStart(e.target.value)} />
+          </AdminForm.Field>
+          <AdminForm.Field label="Fin">
+            <input type="date" value={formCoupEnd} onChange={(e) => setFormCoupEnd(e.target.value)} />
+          </AdminForm.Field>
+          <AdminForm.Field label="Conjunto">
+            <select value={formCoupDs} onChange={(e) => setFormCoupDs(e.target.value)}>
+              <option value="">Sin conjunto</option>
+              {discountSets.map((ds) => <option key={ds.id} value={ds.id}>{ds.name}</option>)}
+            </select>
+          </AdminForm.Field>
+        </AdminForm.Row>
+        <AdminForm.Actions saving={saving} saveLabel="+ Crear" onCancel={resetForm} />
+      </AdminForm>
+    );
+  }
+
   return (
     <CrudDual
       title="Descuentos"
       search={{ placeholder: "Buscar...", value: search, onChange: setSearch }}
       tabs={[
-        { key: "product", label: "Por producto", active: tab === "product", onClick: () => setTab("product") },
-        { key: "volume", label: "Por volumen", active: tab === "volume", onClick: () => setTab("volume") },
-        { key: "coupon", label: "Cupones", active: tab === "coupon", onClick: () => setTab("coupon") },
+        { key: "product", label: "Por producto", active: tab === "product", onClick: () => setParams({ tab: "product" }) },
+        { key: "volume", label: "Por volumen", active: tab === "volume", onClick: () => setParams({ tab: "volume" }) },
+        { key: "coupon", label: "Cupones", active: tab === "coupon", onClick: () => setParams({ tab: "coupon" }) },
       ]}
       error={error}
     >
-      {/* ── Product Discounts ── */}
       {tab === "product" && (
         <>
-          <AdminForm title="Nuevo descuento por producto" onSubmit={handleCreate} saving={saving}>
-            <AdminForm.Field label="Producto">
-              <select value={formProductId} onChange={(e) => setFormProductId(e.target.value)} required>
-                <option value="">Seleccionar producto...</option>
-                {products.map((p) => <option key={p.id} value={p.id}>{p.name}{p.barcode ? ` (${p.barcode})` : ""}</option>)}
-              </select>
-            </AdminForm.Field>
-            <AdminForm.Row>
-              <AdminForm.Field label="% descuento *">
-                <input type="number" step="0.01" value={formPercent} onChange={(e) => setFormPercent(e.target.value)} required />
-              </AdminForm.Field>
-              <AdminForm.Field label="Estado">
-                <select value={formActive} onChange={(e) => setFormActive(e.target.value)}>
-                  <option value="true">Activo</option><option value="false">Inactivo</option>
-                </select>
-              </AdminForm.Field>
-            </AdminForm.Row>
-            <AdminForm.Row>
-              <AdminForm.Field label="Inicio">
-                <input type="date" value={formStart} onChange={(e) => setFormStart(e.target.value)} />
-              </AdminForm.Field>
-              <AdminForm.Field label="Fin">
-                <input type="date" value={formEnd} onChange={(e) => setFormEnd(e.target.value)} />
-              </AdminForm.Field>
-              <AdminForm.Field label="Conjunto">
-                <select value={formProdDs} onChange={(e) => setFormProdDs(e.target.value)}>
-                  <option value="">Sin conjunto</option>
-                  {discountSets.map((ds) => <option key={ds.id} value={ds.id}>{ds.name}</option>)}
-                </select>
-              </AdminForm.Field>
-            </AdminForm.Row>
-            <AdminForm.Actions saving={saving} saveLabel="+ Crear" />
-          </AdminForm>
-
-          <DataTable
-            columns={productColumns}
-            data={pd.filter((d) => !search || prodName(d.product_id).toLowerCase().includes(search.toLowerCase()) || d.discount_percent.includes(search))}
-            keyExtractor={(d: any) => d.id}
-            loading={loading}
-            emptyMessage="Sin descuentos"
-          />
+          <div style={{ marginBottom: "1rem" }}>
+            <button className="crud__action" onClick={() => setParams({ tab: "product", action: "crear" })}>+ Nuevo descuento</button>
+          </div>
+          <DataTable columns={productColumns} data={pd.filter((d) => !search || prodName(d.product_id).toLowerCase().includes(search.toLowerCase()) || d.discount_percent.includes(search))} keyExtractor={(d: any) => d.id} loading={loading} emptyMessage="Sin descuentos" />
         </>
       )}
-
-      {/* ── Volume Discounts ── */}
       {tab === "volume" && (
         <>
-          <AdminForm title="Nuevo descuento por volumen" onSubmit={handleCreate} saving={saving}>
-            <AdminForm.Field label="Producto">
-              <select value={formProductId} onChange={(e) => setFormProductId(e.target.value)}>
-                <option value="">Todos los productos</option>
-                {products.map((p) => <option key={p.id} value={p.id}>{p.name}{p.barcode ? ` (${p.barcode})` : ""}</option>)}
-              </select>
-            </AdminForm.Field>
-            <AdminForm.Row>
-              <AdminForm.Field label="Cantidad mínima *">
-                <input type="number" value={formMinQty} onChange={(e) => setFormMinQty(e.target.value)} required />
-              </AdminForm.Field>
-              <AdminForm.Field label="% descuento *">
-                <input type="number" step="0.01" value={formPercent} onChange={(e) => setFormPercent(e.target.value)} required />
-              </AdminForm.Field>
-            </AdminForm.Row>
-            <AdminForm.Field label="Descripción">
-              <input type="text" value={formDesc} onChange={(e) => setFormDesc(e.target.value)} />
-            </AdminForm.Field>
-            <AdminForm.Row>
-              <AdminForm.Field label="Estado">
-                <select value={formActive} onChange={(e) => setFormActive(e.target.value)}>
-                  <option value="true">Activo</option><option value="false">Inactivo</option>
-                </select>
-              </AdminForm.Field>
-              <AdminForm.Field label="Inicio">
-                <input type="date" value={formStart} onChange={(e) => setFormStart(e.target.value)} />
-              </AdminForm.Field>
-              <AdminForm.Field label="Fin">
-                <input type="date" value={formEnd} onChange={(e) => setFormEnd(e.target.value)} />
-              </AdminForm.Field>
-              <AdminForm.Field label="Conjunto">
-                <select value={formVolDs} onChange={(e) => setFormVolDs(e.target.value)}>
-                  <option value="">Sin conjunto</option>
-                  {discountSets.map((ds) => <option key={ds.id} value={ds.id}>{ds.name}</option>)}
-                </select>
-              </AdminForm.Field>
-            </AdminForm.Row>
-            <AdminForm.Actions saving={saving} saveLabel="+ Crear" />
-          </AdminForm>
-
-          <DataTable
-            columns={volumeColumns}
-            data={vd.filter((d) => !search || prodName(d.product_id ?? 0).toLowerCase().includes(search.toLowerCase()) || d.discount_percent.includes(search) || d.description?.includes(search))}
-            keyExtractor={(d: any) => d.id}
-            loading={loading}
-            emptyMessage="Sin descuentos por volumen"
-          />
+          <div style={{ marginBottom: "1rem" }}>
+            <button className="crud__action" onClick={() => setParams({ tab: "volume", action: "crear" })}>+ Nuevo descuento</button>
+          </div>
+          <DataTable columns={volumeColumns} data={vd.filter((d) => !search || prodName(d.product_id ?? 0).toLowerCase().includes(search.toLowerCase()) || d.discount_percent.includes(search) || d.description?.includes(search))} keyExtractor={(d: any) => d.id} loading={loading} emptyMessage="Sin descuentos por volumen" />
         </>
       )}
-
-      {/* ── Coupons ── */}
       {tab === "coupon" && (
         <>
-          <AdminForm title="Nuevo cupón" onSubmit={handleCreate} saving={saving}>
-            <AdminForm.Row>
-              <AdminForm.Field label="Código *">
-                <input type="text" value={formCode} onChange={(e) => setFormCode(e.target.value.toUpperCase())} required />
-              </AdminForm.Field>
-              <AdminForm.Field label="Tipo">
-                <select value={formDiscType} onChange={(e) => setFormDiscType(e.target.value)}>
-                  <option value="percentage">Porcentaje</option><option value="fixed">Monto fijo</option>
-                </select>
-              </AdminForm.Field>
-              <AdminForm.Field label={formDiscType === "percentage" ? "% descuento *" : "Monto *"}>
-                <input type="number" step="0.01" value={formDiscVal} onChange={(e) => setFormDiscVal(e.target.value)} required />
-              </AdminForm.Field>
-            </AdminForm.Row>
-            <AdminForm.Row>
-              <AdminForm.Field label="Compra mín.">
-                <input type="number" step="0.01" value={formMinPurchase} onChange={(e) => setFormMinPurchase(e.target.value)} />
-              </AdminForm.Field>
-              <AdminForm.Field label="Usos máx.">
-                <input type="number" value={formMaxUses} onChange={(e) => setFormMaxUses(e.target.value)} />
-              </AdminForm.Field>
-              <AdminForm.Field label="Estado">
-                <select value={formCoupActive} onChange={(e) => setFormCoupActive(e.target.value)}>
-                  <option value="true">Activo</option><option value="false">Inactivo</option>
-                </select>
-              </AdminForm.Field>
-            </AdminForm.Row>
-            <AdminForm.Row>
-              <AdminForm.Field label="Inicio">
-                <input type="date" value={formCoupStart} onChange={(e) => setFormCoupStart(e.target.value)} />
-              </AdminForm.Field>
-              <AdminForm.Field label="Fin">
-                <input type="date" value={formCoupEnd} onChange={(e) => setFormCoupEnd(e.target.value)} />
-              </AdminForm.Field>
-              <AdminForm.Field label="Conjunto">
-                <select value={formCoupDs} onChange={(e) => setFormCoupDs(e.target.value)}>
-                  <option value="">Sin conjunto</option>
-                  {discountSets.map((ds) => <option key={ds.id} value={ds.id}>{ds.name}</option>)}
-                </select>
-              </AdminForm.Field>
-            </AdminForm.Row>
-            <AdminForm.Actions saving={saving} saveLabel="+ Crear" />
-          </AdminForm>
-
-          <DataTable
-            columns={couponColumns}
-            data={cd.filter((d) => !search || d.code.toLowerCase().includes(search.toLowerCase()) || d.discount_value.includes(search))}
-            keyExtractor={(d: any) => d.id}
-            loading={loading}
-            emptyMessage="Sin cupones"
-          />
+          <div style={{ marginBottom: "1rem" }}>
+            <button className="crud__action" onClick={() => setParams({ tab: "coupon", action: "crear" })}>+ Nuevo cupón</button>
+          </div>
+          <DataTable columns={couponColumns} data={cd.filter((d) => !search || d.code.toLowerCase().includes(search.toLowerCase()) || d.discount_value.includes(search))} keyExtractor={(d: any) => d.id} loading={loading} emptyMessage="Sin cupones" />
         </>
       )}
     </CrudDual>

@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Package, Layers, Tags, ShoppingCart, Users,
-  Warehouse, Building2, Percent, LogOut,
+  Warehouse, Building2, Percent, LogOut, ExternalLink,
 } from "lucide-react";
 import { clearToken } from "@/api/client";
 import { useNavigate } from "react-router-dom";
@@ -18,6 +18,8 @@ const navItems = [
   { to: "/admin/descuentos", label: "Descuentos", icon: Percent },
   { to: "/admin/conjuntos-descuentos", label: "Conjuntos Descuentos", icon: Percent },
 ];
+
+const storeLink = { to: "/productos?category=all", label: "Ver tienda", icon: ExternalLink };
 
 type AdminSidebarProps = {
   open: boolean;
@@ -59,6 +61,15 @@ function AdminSidebar({ open, onClose }: AdminSidebarProps) {
       </nav>
 
       <div className="admin-sidebar__footer">
+        <Link
+          to={storeLink.to}
+          className="admin-sidebar__logout"
+          onClick={onClose}
+        >
+          <ExternalLink size={18} />
+          <span>{storeLink.label}</span>
+        </Link>
+
         <button type="button" className="admin-sidebar__logout" onClick={handleLogout}>
           <LogOut size={18} />
           <span>Cerrar sesión</span>

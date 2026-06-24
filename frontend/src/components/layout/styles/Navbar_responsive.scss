@@ -1,9 +1,29 @@
 @use "@/base.scss" as *;
 
-@media (max-width: 768px) {
+// ─── Transitory: hamburger with 5-per-row grid, no auth ────
+
+@media (max-width: 1420px) {
   .navbar {
+    justify-content: flex-start;
+
     &__hamburger {
-      display: block;
+      display: flex;
+      align-items: center;
+      order: 1;
+      margin-left: 0;
+    }
+
+    &__brand {
+      order: 2;
+      margin-right: 0;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    &__user-area {
+      order: 3;
+      margin-left: auto;
     }
 
     &__links {
@@ -14,102 +34,107 @@
       right: 0;
       flex-direction: column;
       background: var(--coralie-spicy);
-      padding: 0;
+      padding: 1rem;
       z-index: 50;
       gap: 0;
+      max-height: calc(100dvh - 100%);
+      overflow-y: auto;
+      margin-right: 0;
 
       &--open {
         display: flex;
       }
     }
 
-    &__link,
-    &__dropdown-trigger {
-      width: 100%;
-      padding: 0.75rem 1.25rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      gap: 0.75rem;
-      justify-content: flex-start;
-      text-decoration: none;
-      color: inherit;
-      font-weight: bold;
-      font-size: inherit;
-      font-family: inherit;
-      background: none;
-      border-left: none;
-      border-right: none;
-      border-top: none;
-      cursor: pointer;
+    &__cats {
       display: flex;
-      align-items: center;
-
-      &:hover {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        background: rgba(255, 255, 255, 0.06);
-      }
-    }
-
-    // ─── Mobile dropdown ──────────────────────────────────
-
-    &__dropdown {
-      flex-direction: column;
+      flex-wrap: wrap;
+      overflow: visible;
+      flex: none;
       width: 100%;
+      gap: 0;
 
-      &-trigger {
-        width: 100%;
+      .navbar__link {
+        width: 20%;
         box-sizing: border-box;
-      }
+        justify-content: center;
+        text-align: center;
+        padding: 0.75rem 0.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+        white-space: normal;
+        word-break: break-word;
+        font-size: 0.85rem;
 
-      &-chevron {
-        margin-left: auto;
-      }
-
-      &-menu {
-        display: none;
-        flex-direction: column;
-        background: rgba(0, 0, 0, 0.08);
-      }
-
-      &--open &-menu {
-        display: flex;
-      }
-
-      &-item {
-        padding: 0.65rem 1.25rem 0.65rem 2.75rem;
-        color: var(--coralie-white);
-        text-decoration: none;
-        font-family: var(--coralie-main-font);
-        font-size: 0.9rem;
-        font-weight: 600;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        &:nth-child(5n) {
+          border-right: none;
+        }
 
         &:hover {
-          background: rgba(255, 255, 255, 0.08);
-        }
-
-        &:last-child {
-          border-bottom: none;
+          background: rgba(255, 255, 255, 0.06);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
       }
     }
 
-    &__user-area {
+    // Auth links hidden in transitory — user-area is still visible
+    &__mobile-auth {
       display: none;
+    }
+  }
+}
+
+// ─── Mobile: hamburger with stacked column + auth ─────────
+
+@media (max-width: 540px) {
+  .navbar {
+    &__cats {
+      flex-direction: column;
+      flex-wrap: nowrap;
+
+      .navbar__link {
+        width: 100%;
+        justify-content: flex-start;
+        text-align: left;
+        padding: 0.75rem 1.25rem;
+        border-right: none;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        word-break: normal;
+      }
     }
 
     &__mobile-auth {
       display: flex;
       flex-direction: column;
       width: 100%;
+      margin-top: 0.75rem;
 
-      .navbar__link:last-child {
-        color: var(--coralie-spicy);
-        background: var(--coralie-white);
-        border: solid 1px var(--coralie-spicy);
+      .navbar__link {
+        width: 100%;
+        padding: 0.75rem 1.25rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        gap: 0.75rem;
+        justify-content: flex-start;
+        text-decoration: none;
+        color: inherit;
+        font-weight: bold;
+        background: none;
+        cursor: pointer;
+
         &:hover {
-          color: var(--coralie-white);
-          background: var(--coralie-spicy);
+          background: rgba(255, 255, 255, 0.06);
+        }
+
+        &:last-child {
+          color: var(--coralie-spicy);
+          background: var(--coralie-white);
           border: solid 1px var(--coralie-spicy);
+          &:hover {
+            color: var(--coralie-white);
+            background: var(--coralie-spicy);
+            border: solid 1px var(--coralie-spicy);
+          }
         }
       }
     }

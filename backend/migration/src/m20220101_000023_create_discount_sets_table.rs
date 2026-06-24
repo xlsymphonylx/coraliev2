@@ -13,10 +13,9 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .col(
                         ColumnDef::new(DiscountSets::Id)
-                            .uuid()
+                            .string()
                             .not_null()
                             .primary_key()
-                            .extra("DEFAULT gen_random_uuid()"),
                     )
                     .col(ColumnDef::new(DiscountSets::Name).string().not_null())
                     .col(ColumnDef::new(DiscountSets::Slug).string().not_null().unique_key())
@@ -25,8 +24,8 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(DiscountSets::StartsAt).date_time())
                     .col(ColumnDef::new(DiscountSets::EndsAt).date_time())
                     .col(ColumnDef::new(DiscountSets::DeletedAt).date_time())
-                    .col(ColumnDef::new(DiscountSets::CreatedAt).date_time().extra("DEFAULT NOW()"))
-                    .col(ColumnDef::new(DiscountSets::UpdatedAt).date_time().extra("DEFAULT NOW()"))
+                    .col(ColumnDef::new(DiscountSets::CreatedAt).date_time().default(Expr::current_timestamp()))
+                    .col(ColumnDef::new(DiscountSets::UpdatedAt).date_time().default(Expr::current_timestamp()))
                     .to_owned(),
             )
             .await

@@ -55,23 +55,26 @@ function AdminTags() {
     { header: "Acción", render: (t) => <button className="btn-danger" onClick={() => handleDelete(t.id)}>Eliminar</button> },
   ];
 
+  if (creating) {
+    return (
+      <AdminForm
+        title="Nueva etiqueta"
+        onBack={closeForm}
+        onSubmit={handleCreate}
+        saving={saving}
+        error={error}
+      >
+        <AdminForm.Field label="Nombre de la etiqueta">
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre de la etiqueta" required />
+        </AdminForm.Field>
+        <AdminForm.Actions saving={saving} saveLabel="Guardar" onCancel={() => setName("")} />
+      </AdminForm>
+    );
+  }
+
   return (
     <CrudPage title="Etiquetas" action={{ label: "+ Nueva", onClick: openForm }} search={{ placeholder: "Buscar por nombre...", value: search, onChange: setSearch }}>
       {error && <p className="error-msg">{error}</p>}
-
-      {creating && (
-        <AdminForm
-          title="Nueva etiqueta"
-          onSubmit={handleCreate}
-          saving={saving}
-          error={error}
-        >
-          <AdminForm.Field label="Nombre de la etiqueta">
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre de la etiqueta" required />
-          </AdminForm.Field>
-          <AdminForm.Actions saving={saving} saveLabel="Guardar" onCancel={closeForm} />
-        </AdminForm>
-      )}
 
       <DataTable columns={columns} data={filtered} keyExtractor={(t) => t.id} loading={loading} emptyMessage={search ? "Sin resultados" : "Sin etiquetas"} />
     </CrudPage>
