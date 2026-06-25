@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Package, Layers, Tags, ShoppingCart, Users,
-  Warehouse, Building2, Percent, LogOut, ExternalLink,
+  Warehouse, Building2, Percent, LogOut, ExternalLink, Image,
 } from "lucide-react";
 import { clearToken } from "@/api/client";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +17,7 @@ const navItems = [
   { to: "/admin/almacenes", label: "Almacenes", icon: Building2 },
   { to: "/admin/descuentos", label: "Descuentos", icon: Percent },
   { to: "/admin/conjuntos-descuentos", label: "Conjuntos Descuentos", icon: Percent },
+  { to: "/admin/promo", label: "Promo", icon: Image },
 ];
 
 const storeLink = { to: "/productos?category=all", label: "Ver tienda", icon: ExternalLink };

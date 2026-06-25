@@ -2,7 +2,44 @@
 
 .home-page {
   &__promo {
+    @include flex-layout(row, space-between, center, 2rem);
+    padding: 2rem;
+    background-color: var(--coralie-blush);
+
+    @media (max-width: 768px) {
+      flex-direction: column-reverse;
+    }
   }
+
+  &__promo-info {
+    flex: 1;
+  }
+
+  &__promo-title {
+    font-family: var(--coralie-contrast-font);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--coralie-dark);
+    margin: 0 0 0.5rem;
+  }
+
+  &__promo-subtitle {
+    font-family: var(--coralie-main-font);
+    font-size: 1.125rem;
+    font-weight: 400;
+    color: var(--coralie-mid);
+    margin: 0;
+  }
+
+  &__promo-img {
+    img {
+      display: block;
+      max-width: 500px;
+      width: 100%;
+      height: auto;
+    }
+  }
+
   &__categories {
   }
   &__arrivals {

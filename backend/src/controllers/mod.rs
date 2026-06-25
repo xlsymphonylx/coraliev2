@@ -10,6 +10,7 @@ pub mod orders;
 pub mod product_discounts;
 pub mod product_images;
 pub mod products;
+pub mod promo_settings;
 pub mod roles;
 pub mod storage_units;
 pub mod tags;
