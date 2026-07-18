@@ -4,3 +4,52 @@
   font-family: var(--coralie-main-font);
   box-sizing: border-box;
 }
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ── Scrollbar global: Coralie aesthetic ── */
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--coralie-blush) var(--coralie-petal);
+}
+
+/* WebKit (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--coralie-petal);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--coralie-blush);
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--coralie-rose);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: var(--coralie-hot);
+}
+
+/* ── Sidebar specific ── */
+.sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--coralie-blush) transparent;
+}
+.sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}

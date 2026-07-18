@@ -1,72 +1,58 @@
 @use "@/base.scss" as *;
 
 .product-page {
-  @include flex-layout(
-    $dir: column,
-    $jContent: start,
-    $aItems: stretch,
-    $gap: 1.5rem
-  );
   width: 100%;
-  padding: 2rem;
+  padding: 0 2rem 2rem;
   box-sizing: border-box;
+}
 
-  &__hero {
-    @include flex-layout(
-      $dir: column,
-      $jContent: start,
-      $aItems: start,
-      $gap: 0.5rem
-    );
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    text-align: left;
-    text-transform: capitalize;
+.shop-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: calc(100vh - 220px);
+}
+
+.product-page__grid {
+  padding-left: 2rem;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* ── Cart badge ── */
+.cart-badge {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  background: var(--coralie-hot);
+  color: var(--coralie-white);
+  padding: 0.5rem 1.25rem;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 16px rgba(232, 96, 122, 0.4);
+  z-index: 999;
+  font-family: var(--coralie-main-font);
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .product-page {
+    padding: 0 1.5rem 2rem;
   }
-  &__title {
-    margin: 0ch;
+  .shop-layout {
+    grid-template-columns: 200px 1fr;
   }
-  &__content {
-    display: flex;
+}
+
+@media (max-width: 768px) {
+  .product-page {
+    padding: 0 1rem 1.5rem;
   }
-
-  &__categories {
-    min-width: 14rem;
-    padding: 1rem;
-    border-left: 1px solid var(--border, #ddd);
+  .shop-layout {
+    grid-template-columns: 1fr;
   }
-
-  &__cat-heading {
-    margin: 0 0 0.75rem 0;
-    font-size: 1rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  &__cat-link {
-    display: block;
-    padding: 0.35rem 0.5rem;
-    color: var(--coralie-dark);
-    text-decoration: none;
-    font-size: 0.9rem;
-    border-radius: var(--radius-sm, 4px);
-    transition: background 0.15s;
-
-    &:hover {
-      background: var(--coralie-petal);
-      color: var(--coralie-spicy);
-    }
-
-    &--active {
-      background: var(--coralie-spicy);
-      color: var(--coralie-white);
-      font-weight: 700;
-
-      &:hover {
-        background: var(--coralie-spicy);
-        color: var(--coralie-white);
-      }
-    }
+  .sidebar {
+    display: none;
   }
 }
