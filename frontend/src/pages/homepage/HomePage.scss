@@ -42,8 +42,18 @@
 
   &__categories {
   }
-  &__arrivals {
+
+  /*
+    ProductShowcase sections are rendered via the shared <ProductShowcase> component.
+    Use className overrides below to tweak per-section appearance.
+  */
+
+  /* ── Today's picks override ── */
+  &__picks {
+    /* Add visual overrides for this section here if needed. */
   }
+
+  /* ── Showcase (unchanged) ── */
   &__showcase {
     @include flex-layout(column, flex-start, stretch, 1.5rem);
     padding: 2rem;
@@ -224,6 +234,7 @@
       }
     }
   }
+
   &__curated {
   }
 }

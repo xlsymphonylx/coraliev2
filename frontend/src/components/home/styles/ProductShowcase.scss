@@ -1,0 +1,272 @@
+@use "@/base.scss" as *;
+
+/* ── Product Showcase ──
+   A reusable product slider section with header, scrollable track,
+   arrow navigation, and product cards.
+   Extend via className prop + scoped overrides. */
+
+.product-showcase {
+  padding: 3rem 2rem;
+  max-width: 1280px;
+  margin: 0 auto;
+
+  @media (max-width: 480px) {
+    padding: 2rem 1rem;
+  }
+
+  /* ── Header ── */
+  &__header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  &__title {
+    font-family: var(--coralie-contrast-font);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--coralie-dark);
+    margin: 0 0 0.5rem;
+  }
+
+  &__subtitle {
+    font-family: var(--coralie-main-font);
+    font-size: 1.05rem;
+    color: var(--coralie-mid);
+    margin: 0;
+  }
+
+  /* ── Slider ── */
+  &__slider {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  &__track {
+    display: flex;
+    gap: 1.25rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0.5rem 0.25rem;
+    flex: 1;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    @media (max-width: 480px) {
+      flex-direction: column;
+      overflow-x: visible;
+      overflow-y: auto;
+      scroll-snap-type: y mandatory;
+      height: 55vh;
+      gap: 0.75rem;
+      padding: 0.5rem 0;
+    }
+  }
+
+  &__arrow {
+    flex-shrink: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    border: 1px solid var(--coralie-light);
+    background: var(--coralie-white);
+    color: var(--coralie-dark);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+    z-index: 2;
+
+    &:hover {
+      background: var(--coralie-dark);
+      color: var(--coralie-white);
+      border-color: var(--coralie-dark);
+    }
+
+    @media (max-width: 768px) {
+      display: none;
+    }
+  }
+
+  /* ── Card ── */
+  &__card {
+    flex: 0 0 260px;
+    scroll-snap-align: start;
+    background: var(--coralie-white);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: box-shadow 0.25s;
+
+    &:hover {
+      box-shadow: var(--shadow);
+    }
+
+    @media (max-width: 768px) {
+      flex: 0 0 220px;
+    }
+
+    @media (max-width: 480px) {
+      flex: 0 0 auto;
+      scroll-snap-align: start;
+    }
+  }
+
+  /* ── Card media ── */
+  &__card-media {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    background: var(--coralie-petal);
+
+    img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: opacity 0.35s ease;
+    }
+  }
+
+  &__card-media-img {
+    z-index: 1;
+  }
+
+  &__card-media-hover {
+    z-index: 2;
+    opacity: 0;
+  }
+
+  &__card-media:hover &__card-media-img {
+    opacity: 0;
+  }
+
+  &__card-media:hover &__card-media-hover {
+    opacity: 1;
+  }
+
+  /* ── Badge ── */
+  &__card-badge {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 5;
+    display: flex;
+    gap: 0.35rem;
+
+    &--sale {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      padding: 0.15rem 0.5rem;
+      border-radius: 100px;
+      background: var(--coralie-dark);
+      color: var(--coralie-white);
+    }
+
+    &--sold {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      padding: 0.15rem 0.5rem;
+      border-radius: 100px;
+      background: var(--coralie-hot);
+      color: var(--coralie-white);
+    }
+  }
+
+  /* ── Card info ── */
+  &__card-info {
+    padding: 0.75rem;
+    @include flex-layout(column, flex-start, stretch, 0.35rem);
+  }
+
+  &__card-vendor {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--coralie-light);
+  }
+
+  &__card-title {
+    font-family: var(--coralie-contrast-font);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--coralie-dark);
+    margin: 0;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ── Prices ── */
+  &__card-prices {
+    @include flex-layout(row, flex-start, baseline, 0.4rem);
+    flex-wrap: wrap;
+
+    &-old {
+      font-size: 0.7rem;
+      color: var(--coralie-light);
+      text-decoration: line-through;
+      font-family: var(--coralie-contrast-font);
+    }
+
+    &-current {
+      font-family: var(--coralie-contrast-font);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--coralie-hot);
+    }
+  }
+
+  /* ── Shades ── */
+  &__card-shades {
+    @include flex-layout(row, flex-start, center, 0.25rem);
+    flex-wrap: wrap;
+
+    &-dot {
+      width: 0.75rem;
+      height: 0.75rem;
+      border-radius: 50%;
+      border: 1px solid var(--coralie-light);
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s;
+
+      &:hover {
+        transform: scale(1.25);
+        border-color: var(--coralie-dark);
+      }
+    }
+  }
+
+  /* ── Button ── */
+  &__card-btn {
+    margin-top: 0.25rem;
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--coralie-dark);
+    border-radius: 100px;
+    background: transparent;
+    color: var(--coralie-dark);
+    font-family: var(--coralie-main-font);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+
+    &:hover {
+      background: var(--coralie-dark);
+      color: var(--coralie-white);
+    }
+  }
+}

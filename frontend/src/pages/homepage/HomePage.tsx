@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import client from "@/api/client";
+import ProductShowcase from "@/components/home/ProductShowcase";
+import type { ShowcaseProduct } from "@/components/home/ProductShowcase";
 import "@/pages/homepage/HomePage.scss";
 
 type PromoSettings = {
@@ -11,8 +13,219 @@ type PromoSettings = {
   image: string;
 };
 
+type ShowcaseSettings = {
+  discount: string;
+  title: string;
+  subtitle: string;
+  button_text: string;
+  button_link: string;
+  example_image_1: string;
+  example_image_2: string;
+  product_image: string;
+  product_category: string;
+  product_category_link: string;
+  product_title: string;
+  product_price: string;
+};
+
+/* ── Demo data ── */
+
+const ARRIVALS: ShowcaseProduct[] = [
+  {
+    id: 1,
+    vendor: "Tower 28 Beauty",
+    title: "Mini Lil' Softies LipSoftie Lip Treatment Set",
+    price: 265,
+    comparePrice: 340,
+    salePercent: 22,
+    image: "https://placehold.co/400x400/fad4da/e8607a?text=Lip+Set",
+    imageHover: "https://placehold.co/400x400/f5a8b4/e8607a?text=Lip+Set+2",
+    badge: "sale",
+  },
+  {
+    id: 2,
+    vendor: "ONE/SIZE by Patrick Starrr",
+    title: "Ultimate Blurring Setting Powder Blurred & Bright Travel Duo",
+    price: 375,
+    comparePrice: 410,
+    salePercent: 9,
+    image: "https://placehold.co/400x400/f5a8b4/18151a?text=Powder",
+    imageHover: "https://placehold.co/400x400/e8607a/fff?text=Powder+2",
+    badge: "sale",
+    shades: [
+      { name: "Translúcido/Ultra Rosa", hex: "#fad4da" },
+      { name: "Melocotón oscuro profundo/rico", hex: "#c4b0b8" },
+    ],
+  },
+  {
+    id: 3,
+    vendor: "Sol de Janeiro",
+    title: "Spritz the Season Cheirosa Perfume Mist Gift Set",
+    price: 515,
+    comparePrice: 550,
+    salePercent: 6,
+    image: "https://placehold.co/400x400/fef0f2/e8607a?text=Sol+Mist",
+    imageHover: "https://placehold.co/400x400/fad4da/e8607a?text=Sol+Mist+2",
+    badge: "sale",
+  },
+  {
+    id: 4,
+    vendor: "ONE/SIZE by Patrick Starrr",
+    title: "On 'Til Dawn Mattifying Waterproof Setting Spray Big & Bitty Duo",
+    price: 475,
+    comparePrice: 690,
+    salePercent: 31,
+    image: "https://placehold.co/400x400/18151a/e8607a?text=Setting+Spray",
+    imageHover: "https://placehold.co/400x400/e8607a/fff?text=Spray+2",
+    badge: "sale",
+  },
+  {
+    id: 5,
+    vendor: "Summer Fridays",
+    title: "The Lip Butter Balm Minis",
+    price: 330,
+    comparePrice: null,
+    salePercent: null,
+    image: "https://placehold.co/400x400/fad4da/18151a?text=Lip+Balm",
+    imageHover: "https://placehold.co/400x400/f5a8b4/18151a?text=Balm+2",
+    badge: null,
+  },
+  {
+    id: 6,
+    vendor: "Rhode",
+    title: "Holiday Glazed Trio Gift Set",
+    price: 645,
+    comparePrice: 785,
+    salePercent: 18,
+    image: "https://placehold.co/400x400/e8607a/fff?text=Rhode+Trio",
+    imageHover: "https://placehold.co/400x400/f5a8b4/18151a?text=Trio+2",
+    badge: "sale",
+  },
+  {
+    id: 7,
+    vendor: "Sephora Favorites",
+    title: "Holiday Must Have Value Set",
+    price: 915,
+    comparePrice: 1936,
+    salePercent: 53,
+    image: "https://placehold.co/400x400/18151a/f5a8b4?text=Value+Set",
+    imageHover: "https://placehold.co/400x400/fef0f2/18151a?text=Set+2",
+    badge: "sale",
+  },
+  {
+    id: 8,
+    vendor: "Rhode",
+    title: "Lip Case",
+    price: 495,
+    comparePrice: null,
+    salePercent: null,
+    image: "https://placehold.co/400x400/fad4da/18151a?text=Lip+Case",
+    imageHover: "https://placehold.co/400x400/fef0f2/18151a?text=Case+2",
+    badge: null,
+    shades: [
+      { name: "iPhone 13", hex: "#fad4da" },
+      { name: "iPhone 15 Pro", hex: "#f5a8b4" },
+      { name: "iPhone 16 Pro", hex: "#e8607a" },
+    ],
+  },
+];
+
+const SELECTIONS: ShowcaseProduct[] = [
+  {
+    id: 101,
+    vendor: "The Ordinary",
+    title: "Niacinamide 10% + Zinc 1% Oil Control Serum",
+    price: 140,
+    comparePrice: null,
+    salePercent: null,
+    image: "https://placehold.co/400x400/fef0f2/18151a?text=Niacinamide",
+    imageHover: "https://placehold.co/400x400/fad4da/18151a?text=Niacinamide+2",
+    badge: null,
+  },
+  {
+    id: 102,
+    vendor: "ANUA",
+    title: "Heartleaf Pore Control Cleansing Oil",
+    price: 250,
+    comparePrice: null,
+    salePercent: null,
+    image: "https://placehold.co/400x400/f5a8b4/18151a?text=ANUA+Oil",
+    imageHover: "https://placehold.co/400x400/e8607a/fff?text=ANUA+Oil+2",
+    badge: null,
+  },
+  {
+    id: 103,
+    vendor: "Dr. Althea",
+    title: "345NA Relief Cream – Crema Vegana para Regenerar y Desinflamar",
+    price: 315,
+    comparePrice: null,
+    salePercent: null,
+    image: "https://placehold.co/400x400/fad4da/18151a?text=Relief+Cream",
+    imageHover: "https://placehold.co/400x400/fef0f2/18151a?text=Relief+Cream+2",
+    badge: null,
+  },
+  {
+    id: 104,
+    vendor: "Neutrogena",
+    title: "Sport Face Sunscreen Broad Spectrum Sunblock SPF 70+",
+    price: 170,
+    comparePrice: null,
+    salePercent: null,
+    image: "https://placehold.co/400x400/6a5a62/fff?text=SPF+70",
+    imageHover: "https://placehold.co/400x400/c4b0b8/fff?text=SPF+70+2",
+    badge: "sold-out",
+  },
+  {
+    id: 105,
+    vendor: "Starface",
+    title: "Hydro-Star Pimple Patches",
+    price: 185,
+    comparePrice: null,
+    salePercent: null,
+    image: "https://placehold.co/400x400/e8607a/fff?text=Star+Patch",
+    imageHover: "https://placehold.co/400x400/f5a8b4/18151a?text=Star+Patch+2",
+    badge: null,
+  },
+  {
+    id: 106,
+    vendor: "CeraVe",
+    title: "Gel Limpiador Espumoso",
+    price: 230,
+    comparePrice: null,
+    salePercent: null,
+    image: "https://placehold.co/400x400/18151a/f5a8b4?text=CeraVe+Gel",
+    imageHover: "https://placehold.co/400x400/fef0f2/18151a?text=CeraVe+Gel+2",
+    badge: null,
+  },
+  {
+    id: 107,
+    vendor: "The Ordinary",
+    title: "Glycolic Acid 7% Exfoliating Toner Mini",
+    price: 170,
+    comparePrice: null,
+    salePercent: null,
+    image: "https://placehold.co/400x400/fef0f2/e8607a?text=Glycolic",
+    imageHover: "https://placehold.co/400x400/fad4da/e8607a?text=Glycolic+2",
+    badge: null,
+  },
+  {
+    id: 108,
+    vendor: "The Ordinary",
+    title: "Multi-Peptide Lash and Brow Serum",
+    price: 215,
+    comparePrice: null,
+    salePercent: null,
+    image: "https://placehold.co/400x400/f5a8b4/18151a?text=Lash+Serum",
+    imageHover: "https://placehold.co/400x400/e8607a/fff?text=Lash+Serum+2",
+    badge: null,
+  },
+];
+
+/* ── Component ── */
+
 function HomePage() {
   const [promo, setPromo] = useState<PromoSettings | null>(null);
+  const [showcase, setShowcase] = useState<ShowcaseSettings | null>(null);
 
   useEffect(() => {
     client
@@ -21,10 +234,18 @@ function HomePage() {
         if (data.data) setPromo(data.data);
       })
       .catch(() => {});
+
+    client
+      .get("/showcase-settings")
+      .then(({ data }) => {
+        if (data.data) setShowcase(data.data);
+      })
+      .catch(() => {});
   }, []);
 
   return (
     <div className="home-page">
+      {/* ── Promo ── */}
       <div
         className="home-page__promo"
         style={promo ? { backgroundColor: promo.background_color } : undefined}
@@ -51,31 +272,43 @@ function HomePage() {
           <img src={promo?.image ?? "/banner.webp"} alt="Banner promocional" />
         </div>
       </div>
-      <div className="home-page__categories"></div>
-      <div className="home-page__arrivals"></div>
+
+      {/* ── Categories (placeholder) ── */}
+      <div className="home-page__categories" />
+
+      {/* ── Arrivals ── */}
+      <ProductShowcase
+        title="Recién llegados"
+        subtitle="Descubre nuestros productos"
+        products={ARRIVALS}
+        btnText="Pre ordena"
+      />
+
+      {/* ── Showcase ── */}
       <div className="home-page__showcase">
         <div className="home-page__showcase-row">
           <div className="home-page__showcase-buy">
-            <div className="home-page__showcase-buy-discount">2% OFF</div>
+            <div className="home-page__showcase-buy-discount">
+              {showcase?.discount ?? "2% OFF"}
+            </div>
             <div className="home-page__showcase-buy-title">
-              Labios atrevidos, atrevida tú
+              {showcase?.title ?? "Labios atrevidos, atrevida tú"}
             </div>
             <div className="home-page__showcase-buy-subtitle">
-              ¡Descubre nuestra nueva colección de delineador labiales con un 2%
-              de descuento!
+              {showcase?.subtitle ?? "¡Descubre nuestra nueva colección de delineador labiales con un 2% de descuento!"}
             </div>
             <div className="home-page__showcase-buy-button">
               <a
                 className="home-page__showcase-buy-button-btn"
-                href="https://coraliegtm.com/products/rhode-peptide-lip-shape"
+                href={showcase?.button_link ?? "https://coraliegtm.com/products/rhode-peptide-lip-shape"}
               >
-                Compra Ahora
+                {showcase?.button_text ?? "Compra Ahora"}
               </a>
             </div>
           </div>
           <div className="home-page__showcase-example-1">
             <img
-              src="/showcase-example-1.jpg"
+              src={showcase?.example_image_1 ?? "/showcase-example-1.jpg"}
               alt="Labial destacado"
               className="home-page__showcase-example-1-file"
             />
@@ -84,7 +317,7 @@ function HomePage() {
         <div className="home-page__showcase-row">
           <div className="home-page__showcase-example-2">
             <img
-              src="/showcase-example-2.png"
+              src={showcase?.example_image_2 ?? "/showcase-example-2.png"}
               alt="Cuidado facial destacado"
               className="home-page__showcase-example-2-file"
             />
@@ -92,25 +325,25 @@ function HomePage() {
           <div className="home-page__showcase-product">
             <div className="home-page__showcase-product-image">
               <img
-                src="/showcase-product.jpg"
-                alt="ANUA Heartleaf Pore Control Cleansing Oil"
+                src={showcase?.product_image ?? "/showcase-product.jpg"}
+                alt={showcase?.product_title ?? "Producto destacado"}
                 className="home-page__showcase-product-image-file"
               />
             </div>
             <div className="home-page__showcase-product-info">
               <div className="home-page__showcase-product-info-category">
-                <a href="https://coraliegtm.com/collections/skincare">
-                  Skin Care
+                <a href={showcase?.product_category_link ?? "https://coraliegtm.com/collections/skincare"}>
+                  {showcase?.product_category ?? "Skin Care"}
                 </a>
               </div>
               <div className="home-page__showcase-product-info-rating">
                 ★★★★★
               </div>
               <div className="home-page__showcase-product-info-title">
-                ANUA Heartleaf Pore Control Cleansing Oil
+                {showcase?.product_title ?? "ANUA Heartleaf Pore Control Cleansing Oil"}
               </div>
               <div className="home-page__showcase-product-info-price">
-                Q250.00
+                {showcase?.product_price ?? "Q250.00"}
               </div>
               <button className="home-page__showcase-product-info-add">
                 <span className="home-page__showcase-product-info-add-text">
@@ -132,7 +365,20 @@ function HomePage() {
           </div>
         </div>
       </div>
-      <div className="home-page__curated"></div>
+
+      {/* ── Today's picks ── */}
+      <ProductShowcase
+        className="home-page__picks"
+        title="Selecciones de hoy"
+        subtitle="Completa tu Rutina de Skincare"
+        products={SELECTIONS}
+        btnText={(product) =>
+          product.badge === "sold-out" ? "Agotado" : "Agregar a Carrito"
+        }
+      />
+
+      {/* ── Curated (placeholder) ── */}
+      <div className="home-page__curated" />
     </div>
   );
 }
