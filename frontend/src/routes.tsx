@@ -8,6 +8,7 @@ import AdminInventory from "./pages/admin/AdminInventory";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminProducts from "./pages/admin/AdminProducts";
 import AdminPromoSettings from "./pages/admin/AdminPromoSettings";
+import AdminShowcaseSettings from "./pages/admin/AdminShowcaseSettings";
 import AdminTags from "./pages/admin/AdminTags";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminWarehouses from "./pages/admin/AdminWarehouses";
@@ -39,5 +40,6 @@ export const routes: AppRoute[] = [
   { path: "/admin/descuentos", element: <AdminDiscounts />, middleware: ["admin"] },
   { path: "/admin/conjuntos-descuentos", element: <AdminDiscountSets />, middleware: ["admin"] },
   { path: "/admin/promo", element: <AdminPromoSettings />, middleware: ["admin"] },
+  { path: "/admin/vitrina", element: <AdminShowcaseSettings />, middleware: ["admin"] },
   { path: "/404", element: <Error />, middleware: [] },
 ];

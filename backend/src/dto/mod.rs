@@ -9,6 +9,7 @@ pub mod inventory;
 pub mod order;
 pub mod product;
 pub mod promo_setting;
+pub mod showcase_setting;
 pub mod product_discount;
 pub mod product_image;
 pub mod role;

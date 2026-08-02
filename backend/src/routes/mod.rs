@@ -12,6 +12,7 @@ pub mod product_images;
 pub mod products;
 pub mod promo_settings;
 pub mod roles;
+pub mod showcase_settings;
 pub mod storage_units;
 pub mod tags;
 pub mod users;
@@ -43,4 +44,5 @@ pub fn router() -> Router<AppState> {
         .nest("/coupons", coupons::router())
         .nest("/discount-sets", discount_sets::router())
         .nest("/promo-settings", promo_settings::router())
+        .nest("/showcase-settings", showcase_settings::router())
 }

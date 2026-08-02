@@ -26,6 +26,7 @@ mod m20220101_000023_create_discount_sets_table;
 mod m20220101_000024_add_discount_set_id;
 mod m20220101_000025_create_promo_settings_table;
 mod m20220101_000026_add_title_subtitle_colors_to_promo_settings;
+mod m20220101_000027_create_showcase_settings_table;
 
 pub struct Migrator;
 
@@ -59,6 +60,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20220101_000024_add_discount_set_id::Migration),
             Box::new(m20220101_000025_create_promo_settings_table::Migration),
             Box::new(m20220101_000026_add_title_subtitle_colors_to_promo_settings::Migration),
+            Box::new(m20220101_000027_create_showcase_settings_table::Migration),
         ]
     }
 }

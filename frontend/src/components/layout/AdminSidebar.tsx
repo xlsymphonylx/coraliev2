@@ -18,6 +18,7 @@ const navItems = [
   { to: "/admin/descuentos", label: "Descuentos", icon: Percent },
   { to: "/admin/conjuntos-descuentos", label: "Conjuntos Descuentos", icon: Percent },
   { to: "/admin/promo", label: "Promo", icon: Image },
+  { to: "/admin/vitrina", label: "Vitrina", icon: Image },
 ];
 
 const storeLink = { to: "/productos?category=all", label: "Ver tienda", icon: ExternalLink };
